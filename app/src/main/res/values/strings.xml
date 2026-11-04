@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">Animo Map</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_map">Map</string>
+    <string name="nav_community">Community</string>
+    <string name="nav_groups">Groups</string>
+
+    <!-- Destination Screen Titles -->
+    <string name="title_map">Map</string>
+    <string name="title_community">Community</string>
+    <string name="title_groups">Groups</string>
+
+    <!-- Placeholders -->
+    <string name="placeholder_map">Map screen placeholder. Interactive DLSU campus map coming soon.</string>
+    <string name="placeholder_community">Community screen placeholder. Student recommendations and feed coming soon.</string>
+    <string name="placeholder_groups">Groups screen placeholder. Private groups and presence sharing coming soon.</string>
 </resources>

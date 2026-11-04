@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_map"
+        android:icon="@drawable/ic_nav_map"
+        android:title="@string/nav_map" />
+    <item
+        android:id="@+id/navigation_community"
+        android:icon="@drawable/ic_nav_community"
+        android:title="@string/nav_community" />
+    <item
+        android:id="@+id/navigation_groups"
+        android:icon="@drawable/ic_nav_groups"
+        android:title="@string/nav_groups" />
+</menu>

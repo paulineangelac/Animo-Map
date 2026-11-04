@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Animo Map Dark Mode Color Palette -->
+    <color name="bg_primary">#0B1E26</color>
+    <color name="surface_card">#132F3A</color>
+    <color name="surface_elevated">#1C3E46</color>
+    <color name="primary_teal">#2A6F73</color>
+    <color name="accent_teal">#43CDBB</color>
+    <color name="highlight_selected">#A7F7DF</color>
+    <color name="text_primary">#E6F7F5</color>
+    <color name="text_secondary">#8FAFB2</color>
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>
