@@ -13,6 +13,23 @@
 
     <!-- Placeholders -->
     <string name="placeholder_map">Map screen placeholder. Interactive DLSU campus map coming soon.</string>
-    <string name="placeholder_community">Community screen placeholder. Student recommendations and feed coming soon.</string>
     <string name="placeholder_groups">Groups screen placeholder. Private groups and presence sharing coming soon.</string>
+
+    <!-- Community feed -->
+    <string name="community_category_recommended">Recommended</string>
+    <string name="community_category_recent">Recent</string>
+    <string name="community_category_candidates">POI Candidates</string>
+    <string name="community_review_notice">Student recommendations are reviewed before becoming public map locations.</string>
+    <string name="community_empty_feed">No recommendations in this category yet.</string>
+    <string name="community_post_details_unavailable">Post details are not available yet.</string>
+    <string name="community_comments_unavailable">Comments are not available yet.</string>
+    <string name="community_candidate_pending">POI candidate · Pending moderator review</string>
+    <string name="community_vote_count">%1$d</string>
+    <string name="community_comments_count">%1$d comments</string>
+    <string name="community_post_image">Student submitted campus photo</string>
+    <string name="community_time_minutes">%1$d min ago</string>
+    <string name="community_time_hours">%1$d hr ago</string>
+    <string name="community_time_days">%1$d days ago</string>
+    <string name="community_vote_accessibility">Upvote, %1$d votes</string>
+    <string name="community_comments_accessibility">Comments, %1$d comments</string>
 </resources>
