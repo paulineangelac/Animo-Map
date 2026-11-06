@@ -33,6 +33,7 @@ public class ZoomableImageView extends AppCompatImageView {
     private float lastTouchX;
     private float lastTouchY;
     private int activePointerId = MotionEvent.INVALID_POINTER_ID;
+    private Runnable onImageMatrixChangedListener;
 
     public ZoomableImageView(@NonNull Context context) {
         super(context);
@@ -54,6 +55,39 @@ public class ZoomableImageView extends AppCompatImageView {
 
         scaleGestureDetector = new ScaleGestureDetector(context, new ScaleListener());
         gestureDetector = new GestureDetector(context, new GestureListener());
+    }
+
+    public void setOnImageMatrixChangedListener(@Nullable Runnable listener) {
+        onImageMatrixChangedListener = listener;
+        notifyImageMatrixChanged();
+    }
+
+    private void notifyImageMatrixChanged() {
+        if (onImageMatrixChangedListener != null) {
+            onImageMatrixChangedListener.run();
+        }
+    }
+
+    public void centerOnMapPoint(float normalizedX, float normalizedY) {
+        Drawable drawable = getDrawable();
+        if (drawable == null || getWidth() == 0 || getHeight() == 0) {
+            return;
+        }
+
+        float[] point = {
+                normalizedX * drawable.getIntrinsicWidth(),
+                normalizedY * drawable.getIntrinsicHeight()
+        };
+        matrix.mapPoints(point);
+
+        float targetX = (getWidth() - getPaddingLeft() - getPaddingRight()) / 2f
+                + getPaddingLeft();
+        float targetY = (getHeight() - getPaddingTop() - getPaddingBottom()) / 2f
+                + getPaddingTop();
+        matrix.postTranslate(targetX - point[0], targetY - point[1]);
+        clampMatrixBounds();
+        setImageMatrix(matrix);
+        notifyImageMatrixChanged();
     }
 
     @Override
@@ -102,6 +136,7 @@ public class ZoomableImageView extends AppCompatImageView {
 
         setImageMatrix(matrix);
         isInitialized = true;
+        notifyImageMatrixChanged();
     }
 
     @Override
@@ -140,6 +175,7 @@ public class ZoomableImageView extends AppCompatImageView {
                     matrix.postTranslate(dx, dy);
                     clampMatrixBounds();
                     setImageMatrix(matrix);
+                    notifyImageMatrixChanged();
 
                     lastTouchX = x;
                     lastTouchY = y;
@@ -193,6 +229,7 @@ public class ZoomableImageView extends AppCompatImageView {
             matrix.postScale(scaleFactor, scaleFactor, detector.getFocusX(), detector.getFocusY());
             clampMatrixBounds();
             setImageMatrix(matrix);
+            notifyImageMatrixChanged();
             return true;
         }
     }
@@ -210,6 +247,7 @@ public class ZoomableImageView extends AppCompatImageView {
                 matrix.postScale(scaleFactor, scaleFactor, e.getX(), e.getY());
                 clampMatrixBounds();
                 setImageMatrix(matrix);
+                notifyImageMatrixChanged();
             }
             return true;
         }
