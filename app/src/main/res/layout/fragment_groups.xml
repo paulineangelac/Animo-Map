@@ -1,27 +1,235 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_primary"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:fillViewport="true">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/title_groups"
-        android:textColor="@color/text_primary"
-        android:textSize="24sp"
-        android:textStyle="bold" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center"
-        android:text="@string/placeholder_groups"
-        android:textColor="@color/text_secondary"
-        android:textSize="16sp" />
+        <!-- Top Header Bar -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
 
-</LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="@string/title_groups"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/groups_options_menu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:padding="4dp"
+                android:text="•••"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+
+        <!-- Location Sharing Status Card -->
+        <LinearLayout
+            android:id="@+id/card_location_sharing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_group_card"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/sharing_status_avatar"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_group_avatar"
+                    android:gravity="center"
+                    android:text="S"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/sharing_status_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/groups_title_location_sharing_off"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/sharing_status_subtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/groups_subtitle_location_sharing_off"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/sharing_status_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_group_badge"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:text="@string/groups_badge_off"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/btn_choose_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_button_secondary"
+                android:gravity="center"
+                android:paddingVertical="12dp"
+                android:text="@string/groups_button_choose_location"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- Action Buttons Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btn_create_group"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_primary"
+                android:gravity="center"
+                android:paddingVertical="12dp"
+                android:text="@string/groups_button_create"
+                android:textColor="@color/bg_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btn_join_code"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_secondary"
+                android:gravity="center"
+                android:paddingVertical="12dp"
+                android:text="@string/groups_button_join_code"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- Section Header: Your groups & Manage -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:text="@string/groups_header_your_groups"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/action_manage_groups"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:text="@string/groups_action_manage"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+
+        <!-- Group Cards List Container -->
+        <LinearLayout
+            android:id="@+id/groups_list_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <!-- Privacy Footer Note Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_group_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <TextView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@drawable/bg_group_avatar"
+                android:gravity="center"
+                android:text="L"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:text="@string/groups_privacy_footer_note"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
