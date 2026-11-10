@@ -15,6 +15,34 @@
     <string name="placeholder_map">Map screen placeholder. Interactive DLSU campus map coming soon.</string>
     <string name="placeholder_groups">Groups screen placeholder. Private groups and presence sharing coming soon.</string>
 
+    <!-- Map search, filters, and illustrative prototype data -->
+    <string name="map_search_hint">Search buildings, rooms, or places</string>
+    <string name="map_search_icon_description">Search</string>
+    <string name="map_clear_search">Clear search</string>
+    <string name="map_filter_route">Route</string>
+    <string name="map_filter_buildings">Buildings</string>
+    <string name="map_filter_study">Study</string>
+    <string name="map_filter_food">Food</string>
+    <string name="map_route_preview_title">Route preview</string>
+    <string name="map_route_summary">%1$s → %2$s</string>
+    <string name="map_route_illustrative_notice">Illustrative demo route · not verified directions</string>
+    <string name="map_route_origin">St. La Salle Hall</string>
+    <string name="map_route_demo_start">Demo starting point</string>
+
+    <string name="place_type_building">Building</string>
+    <string name="place_st_lasalle_hall">St. La Salle Hall</string>
+    <string name="place_henry_sy_hall">Henry Sy Sr. Hall</string>
+    <string name="place_velasco_hall">Velasco Hall</string>
+    <string name="place_yuchengco_hall">Yuchengco Hall</string>
+    <string name="place_st_miguel_hall">St. Miguel Hall</string>
+    <string name="place_gokongwei_hall">Gokongwei Hall</string>
+    <string name="place_g303">G303</string>
+    <string name="place_g303_subtitle">Gokongwei Hall · Level 3</string>
+    <string name="place_study_demo">Study area (demo)</string>
+    <string name="place_study_demo_subtitle">Sample study location</string>
+    <string name="place_food_demo">Food place (demo)</string>
+    <string name="place_food_demo_subtitle">Sample food location</string>
+
     <!-- Community feed -->
     <string name="community_category_recommended">Recommended</string>
     <string name="community_category_recent">Recent</string>
