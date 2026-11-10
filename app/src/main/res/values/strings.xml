@@ -13,7 +13,6 @@
 
     <!-- Placeholders -->
     <string name="placeholder_map">Map screen placeholder. Interactive DLSU campus map coming soon.</string>
-    <string name="placeholder_community">Community screen placeholder. Student recommendations and feed coming soon.</string>
     <string name="placeholder_groups">Groups screen placeholder. Private groups and presence sharing coming soon.</string>
 
     <!-- Map search, filters, and illustrative prototype data -->
@@ -43,4 +42,56 @@
     <string name="place_study_demo_subtitle">Sample study location</string>
     <string name="place_food_demo">Food place (demo)</string>
     <string name="place_food_demo_subtitle">Sample food location</string>
+
+    <!-- Community feed -->
+    <string name="community_category_recommended">Recommended</string>
+    <string name="community_category_recent">Recent</string>
+    <string name="community_category_candidates">POI Candidates</string>
+    <string name="community_review_notice">Student recommendations are reviewed before becoming public map locations.</string>
+    <string name="community_empty_feed">No recommendations in this category yet.</string>
+    <string name="community_post_details_unavailable">Post details are not available yet.</string>
+    <string name="community_comments_unavailable">Comments are not available yet.</string>
+    <string name="community_candidate_pending">POI candidate · Pending moderator review</string>
+    <string name="community_vote_count">%1$d</string>
+    <string name="community_comments_count">%1$d comments</string>
+    <string name="community_post_image">Student submitted campus photo</string>
+    <string name="community_time_minutes">%1$d min ago</string>
+    <string name="community_time_hours">%1$d hr ago</string>
+    <string name="community_time_days">%1$d days ago</string>
+    <string name="community_vote_accessibility">Upvote, %1$d votes</string>
+    <string name="community_comments_accessibility">Comments, %1$d comments</string>
+
+    <!-- Groups section -->
+    <string name="groups_badge_private">PRIVATE</string>
+    <string name="groups_chevron_description">View group details</string>
+    <string name="groups_title_location_sharing_off">Location sharing is off</string>
+    <string name="groups_subtitle_location_sharing_off">Your location stays private until you choose to share it.</string>
+    <string name="groups_badge_off">OFF</string>
+    <string name="groups_badge_on">ON</string>
+    <string name="groups_button_choose_location">Choose who can see my location</string>
+    <string name="groups_button_create">+ Create group</string>
+    <string name="groups_button_join_code">Join with code</string>
+    <string name="groups_header_your_groups">Your groups</string>
+    <string name="groups_action_manage">Manage</string>
+    <string name="groups_privacy_footer_note">Only approved group members can see shared campus locations. Sharing can be paused or ended at any time.</string>
+
+    <!-- Groups Interactive Dialogs -->
+    <string name="groups_dialog_audience_title">Choose who can see your location</string>
+    <string name="groups_dialog_audience_confirm">Confirm</string>
+    <string name="groups_dialog_cancel">Cancel</string>
+    <string name="groups_title_location_sharing_on">Location sharing is on</string>
+    <string name="groups_subtitle_location_sharing_on">Sharing location with %1$s.</string>
+    <string name="groups_sharing_updated">Location sharing set to: %1$s</string>
+    <string name="groups_dialog_create_title">Create New Group</string>
+    <string name="groups_dialog_create_hint">Enter group name</string>
+    <string name="groups_dialog_create_action">Create</string>
+    <string name="groups_error_empty_group_name">Please enter a group name.</string>
+    <string name="groups_created_success">Group \"%1$s\" created!</string>
+    <string name="groups_dialog_join_title">Join Group with Code</string>
+    <string name="groups_dialog_join_hint">Enter 6-digit code (e.g. 123456)</string>
+    <string name="groups_dialog_join_action">Join</string>
+    <string name="groups_error_invalid_code">Please enter a valid 6-digit code.</string>
+    <string name="groups_join_submitted">Code \"%1$s\" submitted. Verification pending.</string>
+    <string name="groups_manage_unavailable">Group management is not available yet.</string>
+    <string name="groups_selected_feedback">Selected group: %1$s</string>
 </resources>
