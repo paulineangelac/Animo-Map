@@ -1,5 +1,15 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
+}
+
+// Public Mapbox token (pk.…) lives in local.properties, which is git-ignored:
+//   MAPBOX_ACCESS_TOKEN=pk.your_token_here
+val mapboxToken: String = Properties().let { props ->
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { props.load(it) }
+    props.getProperty("MAPBOX_ACCESS_TOKEN", "")
 }
 
 android {
@@ -16,6 +26,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // The Mapbox SDK reads this string resource automatically.
+        resValue("string", "mapbox_access_token", mapboxToken)
+    }
+    buildFeatures {
+        resValues = true
     }
 
     buildTypes {
@@ -37,6 +52,7 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.material)
     implementation(libs.recyclerview)
+    implementation(libs.mapbox.maps)
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)

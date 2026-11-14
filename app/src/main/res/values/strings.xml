@@ -20,7 +20,8 @@
     <string name="map_search_icon_description">Search</string>
     <string name="map_clear_search">Clear search</string>
     <string name="map_filter_all">All</string>
-    <string name="map_canvas_description">Campus map. Drag to explore, pinch to zoom, or use search to select a place.</string>
+    <string name="map_canvas_description">Campus map. Drag to explore, pinch to zoom, or tap a marker to select a place.</string>
+    <string name="map_token_missing">Mapbox access token missing. Add MAPBOX_ACCESS_TOKEN=pk.… to local.properties and rebuild.</string>
     <string name="map_zoom_in">Zoom in</string>
     <string name="map_zoom_out">Zoom out</string>
     <string name="map_show_campus">Show campus</string>
@@ -32,7 +33,7 @@
     <string name="map_unmapped">Directions are not mapped yet</string>
     <string name="map_demo_notice">Demo route · not verified directions</string>
     <string name="map_demo_title">St. La Salle Hall → Henry Sy Sr. Hall</string>
-    <string name="map_demo_subtitle">Fixed example on the campus diagram</string>
+    <string name="map_demo_subtitle">Fixed example on the campus map</string>
     <string name="map_category_study">Study · demo</string>
     <string name="map_category_food">Food · demo</string>
     <string name="map_filter_route">Route</string>

@@ -6,44 +6,30 @@ import java.util.Set;
 import static org.junit.Assert.*;
 
 public class CampusMapDataTest {
-    @Test public void referenceCornersRotateClockwise() {
-        assertArrayEquals(new float[] {1, 0}, CampusMapData.portraitPoint(0, 0), .0001f);
-        assertArrayEquals(new float[] {0, 1}, CampusMapData.portraitPoint(1, 1), .0001f);
-        assertArrayEquals(new float[] {.3f, .2f}, CampusMapData.portraitPoint(.2f, .7f), .0001f);
+    private static boolean onCampus(double lat, double lng) {
+        return lat >= CampusMapData.SOUTH && lat <= CampusMapData.NORTH
+                && lng >= CampusMapData.WEST && lng <= CampusMapData.EAST;
     }
-    @Test public void catalogHasUniqueIdsAndValidAnchors() {
+    @Test public void catalogHasUniqueIdsAndCoordinatesInsideCampusBounds() {
         Set<String> ids = new HashSet<>();
-        int overview = 0;
         for (MapPlace place : CampusMapData.getPlaces()) {
             assertTrue(ids.add(place.getId()));
-            assertTrue(place.getMapX() >= 0 && place.getMapX() <= 1);
-            assertTrue(place.getMapY() >= 0 && place.getMapY() <= 1);
+            assertTrue(place.getName() + " is outside the campus bounds",
+                    onCampus(place.getLatitude(), place.getLongitude()));
             assertFalse(place.getName().isEmpty());
-            if (place.hasOverviewLabel()) { overview++; }
         }
-        assertEquals(19, ids.size());
-        assertEquals(6, overview);
-        MapPlace room = CampusMapData.findPlace("g303");
-        MapPlace building = CampusMapData.findPlace("gokongwei");
-        assertNotNull(room);
-        assertNotNull(building);
-        assertEquals(building.getMapX(), room.getMapX(), .0001f);
-        assertEquals(building.getMapY(), room.getMapY(), .0001f);
-        assertFalse(room.hasMapMarker());
+        assertEquals(2, ids.size());
+        assertTrue(onCampus(CampusMapData.CENTER_LAT, CampusMapData.CENTER_LNG));
     }
-    @Test public void namesAliasesAndRoomMetadataAreSearchable() {
+    @Test public void namesAndAliasesAreSearchable() {
         MapPlace henry = CampusMapData.findPlace(CampusMapData.HENRY_SY);
-        MapPlace strc = CampusMapData.findPlace("strc");
-        MapPlace room = CampusMapData.findPlace("g303");
+        MapPlace lasalle = CampusMapData.findPlace(CampusMapData.LASALLE);
         assertNotNull(henry);
-        assertNotNull(strc);
-        assertNotNull(room);
+        assertNotNull(lasalle);
         assertTrue(henry.matches(" HENRY "));
-        assertTrue(strc.matches("strc"));
-        assertTrue(room.matches("level 3"));
-        assertTrue(room.matches("G303"));
-        assertFalse(room.matches("no-such-room"));
-        assertTrue(room.matches(""));
+        assertTrue(lasalle.matches("la salle"));
+        assertFalse(lasalle.matches("no-such-place"));
+        assertTrue(lasalle.matches(""));
     }
     @Test public void demoIsLimitedToOnePairAndDoesNotExposeMutablePoints() {
         assertNotNull(CampusMapData.findPlace(CampusMapData.LASALLE));
@@ -51,16 +37,10 @@ public class CampusMapDataTest {
             assertEquals(place.getId().equals(CampusMapData.HENRY_SY),
                     CampusMapData.hasDemoRoute(place.getId()));
         }
-        float[][] points = CampusMapData.getDemoRoutePoints();
-        for (float[] point : points) {
-            assertTrue(point[0] >= 0 && point[0] <= 1);
-            assertTrue(point[1] >= 0 && point[1] <= 1);
-        }
-        // Diagram endpoints stay at the north edges of the named buildings, not arbitrary destinations.
-        assertArrayEquals(CampusMapData.portraitPoint(.349f, .519f), points[0], .0001f);
-        assertArrayEquals(CampusMapData.portraitPoint(.425f, .456f),
-                points[points.length - 1], .0001f);
+        double[][] points = CampusMapData.getDemoRoutePoints();
+        for (double[] point : points) { assertTrue(onCampus(point[0], point[1])); }
+        double original = points[0][0];
         points[0][0] = -1;
-        assertTrue(CampusMapData.getDemoRoutePoints()[0][0] >= 0);
+        assertEquals(original, CampusMapData.getDemoRoutePoints()[0][0], 1e-9);
     }
 }

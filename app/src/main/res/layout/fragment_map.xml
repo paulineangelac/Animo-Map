@@ -5,17 +5,11 @@
     android:id="@+id/map_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <com.itismob.s02.group5.animomap.ui.map.ZoomableImageView
-        android:id="@+id/iv_campus_map"
+    <com.mapbox.maps.MapView
+        android:id="@+id/mapbox_map"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@drawable/campus_map_vector"
         android:contentDescription="@string/map_canvas_description" />
-    <com.itismob.s02.group5.animomap.ui.map.MapOverlayView
-        android:id="@+id/map_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:importantForAccessibility="no" />
     <LinearLayout
         android:id="@+id/map_header"
         android:layout_width="match_parent"
@@ -190,6 +184,17 @@
             android:contentDescription="@string/map_show_campus"
             app:tint="@color/text_primary" />
     </LinearLayout>
+    <TextView
+        android:id="@+id/tv_map_token_missing"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="32dp"
+        android:gravity="center"
+        android:text="@string/map_token_missing"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp"
+        android:visibility="gone" />
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/card_map_place"
         android:layout_width="match_parent"

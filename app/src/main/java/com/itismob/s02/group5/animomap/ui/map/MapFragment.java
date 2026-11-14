@@ -1,6 +1,10 @@
 package com.itismob.s02.group5.animomap.ui.map;
 
+import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -10,8 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
-import android.content.Context;
-import android.graphics.RectF;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Filter;
@@ -23,19 +25,51 @@ import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.ChipGroup;
 import com.itismob.s02.group5.animomap.R;
+import com.mapbox.geojson.Point;
+import com.mapbox.maps.CameraBoundsOptions;
+import com.mapbox.maps.CameraOptions;
+import com.mapbox.maps.CoordinateBounds;
+import com.mapbox.maps.EdgeInsets;
+import com.mapbox.maps.MapView;
+import com.mapbox.maps.MapboxMap;
+import com.mapbox.maps.Style;
+import com.mapbox.maps.extension.style.layers.properties.generated.TextAnchor;
+import com.mapbox.maps.plugin.animation.CameraAnimationsUtils;
+import com.mapbox.maps.plugin.animation.MapAnimationOptions;
+import com.mapbox.maps.plugin.annotation.AnnotationsUtils;
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotation;
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager;
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManagerKt;
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions;
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager;
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManagerKt;
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+/** Campus map screen: a Mapbox map with place markers, search, filters, and a demo route. */
 public class MapFragment extends Fragment {
+    private static final double FOCUS_ZOOM = 17.5;
+    private static final long CAMERA_MS = 600L;
+
     private View root, header, controls, card;
-    private ZoomableImageView mapView;
-    private MapOverlayView overlay;
+    private MapView mapView;
+    private MapboxMap mapboxMap;
+    private PointAnnotationManager markers;
+    private PolylineAnnotationManager routeLine;
+    private final Map<String, MapPlace> markerPlaces = new HashMap<>();
+    private Bitmap dotIcon, selectedDotIcon;
+    private EdgeInsets padding = new EdgeInsets(0, 0, 0, 0);
     private AutoCompleteTextView search;
     private ImageButton clear, zoomIn, zoomOut;
     private TextView title, subtitle, categoryText, notice;
@@ -44,7 +78,7 @@ public class MapFragment extends Fragment {
     private MapPlace selected;
     private MapPlace.Category category;
     private boolean demo, updatingUi, focusRequested;
-    private float[] cameraToRestore;
+    private double[] cameraToRestore;
     private OnBackPressedCallback backCallback;
     private ViewTreeObserver.OnGlobalLayoutListener layoutListener;
     private ViewTreeObserver observedTree;
@@ -59,8 +93,7 @@ public class MapFragment extends Fragment {
         header = view.findViewById(R.id.map_header);
         controls = view.findViewById(R.id.map_controls);
         card = view.findViewById(R.id.card_map_place);
-        mapView = view.findViewById(R.id.iv_campus_map);
-        overlay = view.findViewById(R.id.map_overlay);
+        mapView = view.findViewById(R.id.mapbox_map);
         search = view.findViewById(R.id.et_map_search);
         clear = view.findViewById(R.id.btn_clear_map_search);
         zoomIn = view.findViewById(R.id.btn_map_zoom_in);
@@ -78,20 +111,9 @@ public class MapFragment extends Fragment {
             selected = CampusMapData.findPlace(state.getString("map.selected"));
             demo = state.getBoolean("map.demo") && selected != null
                     && CampusMapData.hasDemoRoute(selected.getId());
-            cameraToRestore = state.getFloatArray("map.camera");
+            cameraToRestore = state.getDoubleArray("map.camera");
         }
-        overlay.setMapView(mapView);
-        mapView.setOnImageMatrixChangedListener(() -> {
-            overlay.invalidate();
-            zoomIn.setEnabled(mapView.canZoomIn());
-            zoomOut.setEnabled(mapView.canZoomOut());
-            zoomIn.setAlpha(mapView.canZoomIn() ? 1f : .4f);
-            zoomOut.setAlpha(mapView.canZoomOut() ? 1f : .4f);
-        });
-        mapView.setOnMapTapListener((x, y) -> {
-            MapPlace place = overlay.findPlaceAt(x, y);
-            if (place != null) { select(place, false); }
-        });
+        setupMap();
         setupSearch();
         updatingUi = true;
         search.setText(state == null ? "" : state.getString("map.query", ""), false);
@@ -104,11 +126,11 @@ public class MapFragment extends Fragment {
                     : id == R.id.chip_study ? MapPlace.Category.STUDY
                     : id == R.id.chip_food ? MapPlace.Category.FOOD : null;
             clearSelection();
-            mapView.showOverview();
+            showOverview();
         });
-        zoomIn.setOnClickListener(button -> mapView.zoomBy(1.5f));
-        zoomOut.setOnClickListener(button -> mapView.zoomBy(1f / 1.5f));
-        view.findViewById(R.id.btn_map_overview).setOnClickListener(button -> mapView.showOverview());
+        zoomIn.setOnClickListener(button -> zoomBy(1));
+        zoomOut.setOnClickListener(button -> zoomBy(-1));
+        view.findViewById(R.id.btn_map_overview).setOnClickListener(button -> showOverview());
         view.findViewById(R.id.btn_close_map_place).setOnClickListener(button -> clearSelection());
         directions.setOnClickListener(button -> {
             demo = !demo;
@@ -132,19 +154,9 @@ public class MapFragment extends Fragment {
             if (!isAdded() || getView() != root) { return; }
             observedTree = root.getViewTreeObserver();
             if (!updateViewport()) { return; }
-            if (cameraToRestore != null) {
-                mapView.restoreCameraState(cameraToRestore);
-                cameraToRestore = null;
-            } else if (focusRequested && selected != null) {
+            if (focusRequested && selected != null) {
                 focusRequested = false;
-                if (demo) {
-                    RectF bounds = new RectF(selected.getMapX(), selected.getMapY(),
-                            selected.getMapX(), selected.getMapY());
-                    MapPlace origin = CampusMapData.findPlace(CampusMapData.LASALLE);
-                    if (origin != null) { bounds.union(origin.getMapX(), origin.getMapY()); }
-                    for (float[] p : CampusMapData.getDemoRoutePoints()) { bounds.union(p[0], p[1]); }
-                    mapView.focusOnBounds(bounds);
-                } else { mapView.focusOnPoint(selected.getMapX(), selected.getMapY()); }
+                if (demo) { focusOnRoute(); } else { focusOnPlace(selected); }
             }
         };
         root.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
@@ -152,6 +164,146 @@ public class MapFragment extends Fragment {
         root.requestFocus();
         render();
     }
+
+    // ---- Mapbox ----
+
+    private void setupMap() {
+        if (getString(R.string.mapbox_access_token).trim().isEmpty()) {
+            root.findViewById(R.id.tv_map_token_missing).setVisibility(View.VISIBLE);
+        }
+        mapboxMap = mapView.getMapboxMap();
+        // Keep the camera on campus.
+        mapboxMap.setBounds(new CameraBoundsOptions.Builder()
+                .bounds(new CoordinateBounds(
+                        Point.fromLngLat(CampusMapData.WEST, CampusMapData.SOUTH),
+                        Point.fromLngLat(CampusMapData.EAST, CampusMapData.NORTH)))
+                .minZoom(14.5)
+                .maxZoom(20.0)
+                .build());
+        if (cameraToRestore != null && cameraToRestore.length == 5) {
+            mapboxMap.setCamera(new CameraOptions.Builder()
+                    .center(Point.fromLngLat(cameraToRestore[1], cameraToRestore[0]))
+                    .zoom(cameraToRestore[2]).bearing(cameraToRestore[3]).pitch(cameraToRestore[4])
+                    .build());
+            cameraToRestore = null;
+        } else {
+            mapboxMap.setCamera(overviewCamera());
+        }
+        dotIcon = createDot(false);
+        selectedDotIcon = createDot(true);
+        // The dark style matches the app's dark design system.
+        mapboxMap.loadStyle(Style.DARK, style -> {
+            markers = PointAnnotationManagerKt.createPointAnnotationManager(
+                    AnnotationsUtils.getAnnotations(mapView), (com.mapbox.maps.plugin.annotation.AnnotationConfig) null);
+            routeLine = PolylineAnnotationManagerKt.createPolylineAnnotationManager(
+                    AnnotationsUtils.getAnnotations(mapView), (com.mapbox.maps.plugin.annotation.AnnotationConfig) null);
+            markers.setIconAllowOverlap(true);
+            markers.setTextOptional(true);
+            markers.addClickListener(annotation -> {
+                MapPlace place = markerPlaces.get(annotation.getId());
+                if (place != null) { select(place, false); }
+                return true;
+            });
+            renderMap();
+        });
+    }
+    private CameraOptions overviewCamera() {
+        return new CameraOptions.Builder()
+                .center(Point.fromLngLat(CampusMapData.CENTER_LNG, CampusMapData.CENTER_LAT))
+                .zoom(CampusMapData.OVERVIEW_ZOOM).bearing(0.0).pitch(0.0)
+                .build();
+    }
+    /** Draws a round marker as a bitmap, using the app palette. */
+    private Bitmap createDot(boolean isSelected) {
+        int size = dp(isSelected ? 36 : 28);
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(ContextCompat.getColor(requireContext(), R.color.surface_card));
+        canvas.drawCircle(size / 2f, size / 2f, dp(isSelected ? 10 : 6), paint);
+        paint.setColor(ContextCompat.getColor(requireContext(),
+                isSelected ? R.color.highlight_selected : R.color.accent_teal));
+        canvas.drawCircle(size / 2f, size / 2f, dp(isSelected ? 6 : 3.5f), paint);
+        return bitmap;
+    }
+    /** Redraws markers and the demo route for the current filter, selection, and route state. */
+    private void renderMap() {
+        if (markers == null || routeLine == null) { return; }
+        markers.deleteAll();
+        routeLine.deleteAll();
+        markerPlaces.clear();
+        if (demo) {
+            List<Point> points = new ArrayList<>();
+            for (double[] p : CampusMapData.getDemoRoutePoints()) { points.add(Point.fromLngLat(p[1], p[0])); }
+            routeLine.create(new PolylineAnnotationOptions().withPoints(points)
+                    .withLineColor(ContextCompat.getColor(requireContext(), R.color.highlight_selected))
+                    .withLineWidth(5.0));
+        }
+        List<MapPlace> shown = new ArrayList<>();
+        for (MapPlace place : CampusMapData.getPlaces()) {
+            if (!place.hasMapMarker()) { continue; }
+            boolean visible = demo ? place == selected || CampusMapData.LASALLE.equals(place.getId())
+                    : place == selected || category == null || category == place.getCategory();
+            if (visible) { shown.add(place); }
+        }
+        int labelColor = ContextCompat.getColor(requireContext(), R.color.text_primary);
+        int haloColor = ContextCompat.getColor(requireContext(), R.color.bg_primary);
+        List<PointAnnotationOptions> options = new ArrayList<>();
+        for (MapPlace place : shown) {
+            boolean isSelected = place == selected;
+            options.add(new PointAnnotationOptions()
+                    .withPoint(Point.fromLngLat(place.getLongitude(), place.getLatitude()))
+                    .withIconImage(isSelected ? selectedDotIcon : dotIcon)
+                    .withTextField(place.getShortLabel())
+                    .withTextSize(12.0)
+                    .withTextColor(labelColor)
+                    .withTextHaloColor(haloColor)
+                    .withTextHaloWidth(1.5)
+                    .withTextAnchor(TextAnchor.TOP)
+                    .withTextOffset(Arrays.asList(0.0, isSelected ? 1.0 : 0.6))
+                    // Lower keys are placed first, so the selected label always wins collisions.
+                    .withSymbolSortKey(isSelected ? 0.0 : 1.0));
+        }
+        List<PointAnnotation> created = markers.create(options);
+        for (int i = 0; i < created.size(); i++) {
+            markerPlaces.put(created.get(i).getId(), shown.get(i));
+        }
+    }
+    private void moveCamera(CameraOptions camera) {
+        MapAnimationOptions options = new MapAnimationOptions.Builder().duration(CAMERA_MS).build();
+        CameraAnimationsUtils.getCamera(mapView).easeTo(camera, options, null);
+    }
+    private void showOverview() {
+        moveCamera(new CameraOptions.Builder().center(
+                Point.fromLngLat(CampusMapData.CENTER_LNG, CampusMapData.CENTER_LAT))
+                .zoom(CampusMapData.OVERVIEW_ZOOM).bearing(0.0).pitch(0.0).build());
+    }
+    private void zoomBy(double levels) {
+        moveCamera(new CameraOptions.Builder()
+                .zoom(mapboxMap.getCameraState().getZoom() + levels).build());
+    }
+    private void focusOnPlace(MapPlace place) {
+        moveCamera(new CameraOptions.Builder()
+                .center(Point.fromLngLat(place.getLongitude(), place.getLatitude()))
+                .zoom(Math.max(mapboxMap.getCameraState().getZoom(), FOCUS_ZOOM))
+                .build());
+    }
+    /** Fits the whole demo route and both of its buildings on screen. */
+    private void focusOnRoute() {
+        List<Point> points = new ArrayList<>();
+        for (double[] p : CampusMapData.getDemoRoutePoints()) { points.add(Point.fromLngLat(p[1], p[0])); }
+        MapPlace origin = CampusMapData.findPlace(CampusMapData.LASALLE);
+        if (origin != null) { points.add(Point.fromLngLat(origin.getLongitude(), origin.getLatitude())); }
+        points.add(Point.fromLngLat(selected.getLongitude(), selected.getLatitude()));
+        EdgeInsets fit = new EdgeInsets(padding.getTop() + dp(24), padding.getLeft() + dp(24),
+                padding.getBottom() + dp(24), padding.getRight() + dp(24));
+        CameraOptions camera = mapboxMap.cameraForCoordinates(points, new CameraOptions.Builder().build(),
+                fit, 19.0, null);
+        moveCamera(camera);
+    }
+
+    // ---- Search, selection, and the place card ----
+
     private void setupSearch() {
         PlaceSearchAdapter adapter = new PlaceSearchAdapter();
         search.setAdapter(adapter);
@@ -225,9 +377,7 @@ public class MapFragment extends Fragment {
                 : category == MapPlace.Category.FOOD ? R.id.chip_food : R.id.chip_all;
     }
     private void render() {
-        overlay.setActiveCategory(category);
-        overlay.setSelectedPlace(selected);
-        overlay.setRouteVisible(demo);
+        renderMap();
         clear.setVisibility(search.length() == 0 ? View.INVISIBLE : View.VISIBLE);
         card.setVisibility(selected == null ? View.GONE : View.VISIBLE);
         backCallback.setEnabled(selected != null);
@@ -252,7 +402,11 @@ public class MapFragment extends Fragment {
         }
         root.requestLayout();
     }
-    /** Reserve actual measured UI space, including a side card on landscape screens. */
+    /**
+     * Sizes the header and place card from measured UI, keeps the zoom buttons clear of the card,
+     * and tells the map how much of its area is covered so camera moves center in the open space.
+     * Returns true once the layout has settled.
+     */
     private boolean updateViewport() {
         if (root.getWidth() == 0 || root.getHeight() == 0 || header.getHeight() == 0) { return false; }
         boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
@@ -313,22 +467,20 @@ public class MapFragment extends Fragment {
             card.setLayoutParams(cardParams);
             return false;
         }
-        int right = dp(80) + (sideCard ? cardWidth + dp(16) : 0);
-        int bottom = selected != null && !sideCard ? card.getHeight() + dp(32) : dp(landscape ? 8 : 16);
-        mapView.setViewportInsets(dp(16), header.getBottom() + dp(4), right, bottom);
-        RectF viewport = mapView.getMapViewport();
+        int right = sideCard ? cardWidth + dp(16) : 0;
+        int bottom = selected != null && !sideCard ? card.getHeight() + dp(32) : 0;
+        // Zoom buttons sit at the end edge, beside a landscape card or above a portrait card.
         FrameLayout.LayoutParams controlParams = (FrameLayout.LayoutParams) controls.getLayoutParams();
-        int left = (int) viewport.right + dp(12);
-        int top = Math.max(0, Math.min(root.getHeight() - controls.getHeight() - dp(8),
-                (int) (viewport.centerY() - controls.getHeight() / 2f)));
-        int start = root.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL
-                ? root.getWidth() - left - controls.getWidth() : left;
-        if (controlParams.getMarginStart() != start || controlParams.topMargin != top
-                || controlParams.gravity != (Gravity.TOP | Gravity.START)) {
-            controlParams.gravity = Gravity.TOP | Gravity.START;
-            controlParams.setMarginStart(start);
-            controlParams.topMargin = top;
+        int controlsEnd = dp(12) + right;
+        if (controlParams.getMarginEnd() != controlsEnd || controlParams.bottomMargin != bottom) {
+            controlParams.setMarginEnd(controlsEnd);
+            controlParams.bottomMargin = bottom;
             controls.setLayoutParams(controlParams);
+        }
+        EdgeInsets insets = new EdgeInsets(header.getBottom() + dp(4), dp(16), bottom, right + dp(64));
+        if (!insets.equals(padding)) {
+            padding = insets;
+            mapboxMap.setCamera(new CameraOptions.Builder().padding(padding).build());
         }
         return true;
     }
@@ -338,7 +490,12 @@ public class MapFragment extends Fragment {
         state.putString("map.selected", selected == null ? null : selected.getId());
         state.putBoolean("map.demo", demo);
         if (search != null) { state.putString("map.query", search.getText().toString()); }
-        if (mapView != null) { state.putFloatArray("map.camera", mapView.getCameraState()); }
+        if (mapboxMap != null) {
+            com.mapbox.maps.CameraState camera = mapboxMap.getCameraState();
+            state.putDoubleArray("map.camera", new double[] {camera.getCenter().latitude(),
+                    camera.getCenter().longitude(), camera.getZoom(), camera.getBearing(),
+                    camera.getPitch()});
+        }
     }
     @Override public void onDestroyView() {
         if (observedTree != null && observedTree.isAlive()) {
@@ -347,11 +504,13 @@ public class MapFragment extends Fragment {
         if (root.getViewTreeObserver().isAlive()) {
             root.getViewTreeObserver().removeOnGlobalLayoutListener(layoutListener);
         }
-        mapView.setOnImageMatrixChangedListener(null);
-        mapView.setOnMapTapListener(null);
+        markers = null;
+        routeLine = null;
+        markerPlaces.clear();
         super.onDestroyView();
     }
     private int dp(float value) { return Math.round(value * getResources().getDisplayMetrics().density); }
+
 
     private final class PlaceSearchAdapter extends ArrayAdapter<MapPlace> {
         private final List<MapPlace> results = new ArrayList<>(CampusMapData.getPlaces());
