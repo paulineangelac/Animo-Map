@@ -29,7 +29,6 @@ import static androidx.test.espresso.action.ViewActions.*;
 import static androidx.test.espresso.assertion.ViewAssertions.*;
 import static androidx.test.espresso.matcher.RootMatchers.isPlatformPopup;
 import static androidx.test.espresso.matcher.ViewMatchers.*;
-import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
@@ -129,6 +128,7 @@ public class MapScreenTest {
         onView(withId(R.id.iv_campus_map)).perform(new GeneralClickAction(Tap.SINGLE, view -> {
             ZoomableImageView map = (ZoomableImageView) view;
             MapPlace place = CampusMapData.findPlace(CampusMapData.HENRY_SY);
+            assertNotNull(place);
             float[] point = map.mapPoint(place.getMapX(), place.getMapY());
             int[] screen = new int[2];
             view.getLocationOnScreen(screen);
@@ -228,6 +228,7 @@ public class MapScreenTest {
             float[] after = map.getCameraState();
             assertTrue(Math.abs(after[0] - before[0][0]) > .01f || Math.abs(after[1] - before[0][1]) > .01f);
             MapPlace henry = CampusMapData.findPlace(CampusMapData.HENRY_SY);
+            assertNotNull(henry);
             map.focusOnPoint(henry.getMapX(), henry.getMapY());
         });
         onView(withId(R.id.iv_campus_map)).perform(confirmTap());
@@ -235,8 +236,11 @@ public class MapScreenTest {
             ZoomableImageView map = activity.findViewById(R.id.iv_campus_map);
             MapOverlayView overlay = activity.findViewById(R.id.map_overlay);
             MapPlace henry = CampusMapData.findPlace(CampusMapData.HENRY_SY);
+            assertNotNull(henry);
             float[] p = map.mapPoint(henry.getMapX(), henry.getMapY());
-            assertEquals(henry.getId(), overlay.findPlaceAt(p[0], p[1]).getId());
+            MapPlace tapped = overlay.findPlaceAt(p[0], p[1]);
+            assertNotNull(tapped);
+            assertEquals(henry.getId(), tapped.getId());
         });
         capture("09-zoomed-map");
     }

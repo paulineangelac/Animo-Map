@@ -25,17 +25,25 @@ public class CampusMapDataTest {
         assertEquals(6, overview);
         MapPlace room = CampusMapData.findPlace("g303");
         MapPlace building = CampusMapData.findPlace("gokongwei");
+        assertNotNull(room);
+        assertNotNull(building);
         assertEquals(building.getMapX(), room.getMapX(), .0001f);
         assertEquals(building.getMapY(), room.getMapY(), .0001f);
         assertFalse(room.hasMapMarker());
     }
     @Test public void namesAliasesAndRoomMetadataAreSearchable() {
-        assertTrue(CampusMapData.findPlace(CampusMapData.HENRY_SY).matches(" HENRY "));
-        assertTrue(CampusMapData.findPlace("strc").matches("strc"));
-        assertTrue(CampusMapData.findPlace("g303").matches("level 3"));
-        assertTrue(CampusMapData.findPlace("g303").matches("G303"));
-        assertFalse(CampusMapData.findPlace("g303").matches("no-such-room"));
-        assertTrue(CampusMapData.findPlace("g303").matches(""));
+        MapPlace henry = CampusMapData.findPlace(CampusMapData.HENRY_SY);
+        MapPlace strc = CampusMapData.findPlace("strc");
+        MapPlace room = CampusMapData.findPlace("g303");
+        assertNotNull(henry);
+        assertNotNull(strc);
+        assertNotNull(room);
+        assertTrue(henry.matches(" HENRY "));
+        assertTrue(strc.matches("strc"));
+        assertTrue(room.matches("level 3"));
+        assertTrue(room.matches("G303"));
+        assertFalse(room.matches("no-such-room"));
+        assertTrue(room.matches(""));
     }
     @Test public void demoIsLimitedToOnePairAndDoesNotExposeMutablePoints() {
         assertNotNull(CampusMapData.findPlace(CampusMapData.LASALLE));

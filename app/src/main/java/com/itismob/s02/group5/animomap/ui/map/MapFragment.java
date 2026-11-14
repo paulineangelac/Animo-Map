@@ -18,6 +18,7 @@ import android.widget.Filter;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -140,7 +141,7 @@ public class MapFragment extends Fragment {
                     RectF bounds = new RectF(selected.getMapX(), selected.getMapY(),
                             selected.getMapX(), selected.getMapY());
                     MapPlace origin = CampusMapData.findPlace(CampusMapData.LASALLE);
-                    bounds.union(origin.getMapX(), origin.getMapY());
+                    if (origin != null) { bounds.union(origin.getMapX(), origin.getMapY()); }
                     for (float[] p : CampusMapData.getDemoRoutePoints()) { bounds.union(p[0], p[1]); }
                     mapView.focusOnBounds(bounds);
                 } else { mapView.focusOnPoint(selected.getMapX(), selected.getMapY()); }
@@ -198,13 +199,13 @@ public class MapFragment extends Fragment {
         render();
         focusRequested = true;
         root.requestLayout();
-        root.announceForAccessibility(place.getName());
+        ViewCompat.setAccessibilityPaneTitle(card, title.getText());
     }
     private void hideKeyboard() {
         search.dismissDropDown();
         InputMethodManager keyboard = (InputMethodManager) requireContext()
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
-        keyboard.hideSoftInputFromWindow(search.getWindowToken(), 0);
+        if (keyboard != null) { keyboard.hideSoftInputFromWindow(search.getWindowToken(), 0); }
         search.clearFocus();
         root.requestFocus();
     }
@@ -246,7 +247,7 @@ public class MapFragment extends Fragment {
             ViewGroup.LayoutParams params = card.getLayoutParams();
             params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
             card.setLayoutParams(params);
-            android.widget.ScrollView body = (android.widget.ScrollView) card.findViewById(R.id.map_place_scroll);
+            ScrollView body = card.findViewById(R.id.map_place_scroll);
             body.scrollTo(0, 0);
         }
         root.requestLayout();
@@ -320,7 +321,7 @@ public class MapFragment extends Fragment {
         int left = (int) viewport.right + dp(12);
         int top = Math.max(0, Math.min(root.getHeight() - controls.getHeight() - dp(8),
                 (int) (viewport.centerY() - controls.getHeight() / 2f)));
-        int start = ViewCompat.getLayoutDirection(root) == ViewCompat.LAYOUT_DIRECTION_RTL
+        int start = root.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL
                 ? root.getWidth() - left - controls.getWidth() : left;
         if (controlParams.getMarginStart() != start || controlParams.topMargin != top
                 || controlParams.gravity != (Gravity.TOP | Gravity.START)) {
