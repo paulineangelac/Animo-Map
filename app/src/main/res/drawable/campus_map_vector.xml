@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This is a full campus diagram, not an icon. Traced from dlsu_map.png. Original 2048 x 1028 geometry rotated clockwise. -->
+<vector
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    tools:ignore="VectorRaster"
+    android:width="257dp"
+    android:height="512dp"
+    android:viewportWidth="1028"
+    android:viewportHeight="2048">
+    <group
+        android:rotation="90"
+        android:translateX="1028">
+        <!-- Only streets and walkways shown in the reference. -->
+        <path
+            android:fillColor="@color/map_path"
+            android:pathData="M109,904H2048V998H109Z M2020,0H2048V594L1238,641V611L2020,568Z M1562,621H1609V897H1562Z M665,246H1032V268H665Z M658,339H1145V326H1310V289H1327V343H1160V607H1246V622H1146V364H728V535H658Z M222,562H235V681H638V578H647V695H222Z M155,880H671V866H716V879H1098V521H1110V902H155Z" />
+        <path
+            android:fillColor="@color/map_green"
+            android:pathData="M736,378H985V444H736Z M736,699H981V878H736Z M242,565H489V672H242Z M238,775H637V889H238Z" />
+        <path
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="@color/map_green_path"
+            android:strokeWidth="9"
+            android:pathData="M736,765L981,708 M736,872L974,711 M773,699L738,775 M909,699L957,780V878 M242,569L302,630L256,672 M309,565L274,630L344,672 M242,630H489 M312,888C327,765 545,765 562,888" />
+        <path
+            android:fillColor="@color/surface_elevated"
+            android:strokeColor="@color/primary_teal"
+            android:strokeWidth="2"
+            android:pathData="M72,495H125V636H72Z M158,510H203V479H234V693H638V578H648V552H683V537H697V552H716V875H671V759H228V876H158Z M271,444H418V552H271Z M449,378H652V523H599V535H472V523H449Z M760,469H981V699H760Z M999,521H1094V874H999Z M1161,343H1303V594H1161Z M999,366H1144V478H1111V484H999Z M763,95H960V224H763Z M1037,47H1093V273H1143V328H711V317H660V270H711V259H1032V220H1029V183H1037V92H1023V60H1037Z M1328,292H1408V461H1328Z M1566,273H1660V546H1566Z M1812,293H1930L2015,334V563L1796,575V480H1812Z M1359,642H1493V896H1359Z M1793,622H1917V888H1793Z" />
+        <path
+            android:fillColor="@color/map_path"
+            android:pathData="M509,562H519V644L543,668H622V675H537L509,648Z M524,562H534V636L548,652H622V661H543L524,641Z M539,562H548V627L557,637H622V646H551L539,631Z M578,562H622V608H600L578,590Z M578,613H622V630H557V562H568V605Z" />
+        <path
+            android:fillColor="@color/primary_teal"
+            android:pathData="M0,903H109V935H99V998H0Z" />
+        <!-- The north arrow rotates with the reference; N is drawn upright in the overlay. -->
+        <path
+            android:fillColor="@color/text_secondary"
+            android:pathData="M218,114L331,228L169,211L238,195Z" />
+    </group>
+</vector>

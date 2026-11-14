@@ -9,6 +9,9 @@
     <color name="highlight_selected">#A7F7DF</color>
     <color name="text_primary">#E6F7F5</color>
     <color name="text_secondary">#8FAFB2</color>
+    <color name="map_path">#4C6570</color>
+    <color name="map_green">#1F4D3C</color>
+    <color name="map_green_path">#547863</color>
 
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>

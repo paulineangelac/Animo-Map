@@ -3,282 +3,209 @@ package com.itismob.s02.group5.animomap.ui.map;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.DashPathEffect;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
-import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-
 import com.itismob.s02.group5.animomap.R;
-
 import java.util.ArrayList;
 import java.util.List;
 
-/** Draws sample place markers and an illustrative route in the campus map's image coordinates. */
+/** Screen-sized labels and touch targets, using the same camera as the vector drawable. */
 public class MapOverlayView extends View {
+    private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint text = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint route = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final List<MapPlace> visiblePlaces = new ArrayList<>();
+    private final List<Label> labels = new ArrayList<>();
+    private ZoomableImageView map;
+    private MapPlace.Category category;
+    private MapPlace selected;
+    private boolean demo;
+    private final int surface, accent, highlight, primary, secondary;
 
-    private static final float ORIGIN_X = 0.21f;
-    private static final float ORIGIN_Y = 0.71f;
-
-    private final Paint markerFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint markerOutlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint labelBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint labelOutlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint labelTitlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint labelSubtitlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint routeOutlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint routePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Matrix imageMatrix = new Matrix();
-    private final Path routePath = new Path();
-    private final RectF labelRect = new RectF();
-    private final float[] pointBuffer = new float[2];
-
-    private int surfaceColor;
-    private int accentColor;
-    private int selectedColor;
-    private int primaryTextColor;
-    private int secondaryTextColor;
-
-    private ZoomableImageView mapView;
-    private List<MapPlace> places = new ArrayList<>();
-    private MapPlace.Category activeCategory = MapPlace.Category.BUILDING;
-    private MapPlace selectedPlace;
-    private boolean routeVisible;
-
-    public MapOverlayView(@NonNull Context context) {
-        super(context);
-        init();
+    private static final class Label {
+        final MapPlace place;
+        final RectF bounds;
+        Label(MapPlace place, RectF bounds) { this.place = place; this.bounds = bounds; }
     }
-
-    public MapOverlayView(@NonNull Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
-        init();
-    }
-
-    public MapOverlayView(@NonNull Context context, @Nullable AttributeSet attrs,
-                          int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init();
-    }
-
-    private void init() {
-        markerFillPaint.setStyle(Paint.Style.FILL);
-        markerOutlinePaint.setStyle(Paint.Style.FILL);
-        labelBackgroundPaint.setStyle(Paint.Style.FILL);
-        labelOutlinePaint.setStyle(Paint.Style.STROKE);
-        labelOutlinePaint.setStrokeWidth(dp(1));
-        labelTitlePaint.setTextSize(sp(13));
-        labelTitlePaint.setTypeface(android.graphics.Typeface.create(
-                "sans-serif-medium", android.graphics.Typeface.NORMAL));
-        labelSubtitlePaint.setTextSize(sp(11));
-        routeOutlinePaint.setStyle(Paint.Style.STROKE);
-        routeOutlinePaint.setStrokeCap(Paint.Cap.ROUND);
-        routeOutlinePaint.setStrokeJoin(Paint.Join.ROUND);
-        routeOutlinePaint.setStrokeWidth(dp(8));
-        routePaint.setStyle(Paint.Style.STROKE);
-        routePaint.setStrokeCap(Paint.Cap.ROUND);
-        routePaint.setStrokeJoin(Paint.Join.ROUND);
-        routePaint.setStrokeWidth(dp(4));
-        routePaint.setPathEffect(new DashPathEffect(new float[]{dp(11), dp(7)}, 0));
-        surfaceColor = ContextCompat.getColor(getContext(), R.color.surface_card);
-        accentColor = ContextCompat.getColor(getContext(), R.color.accent_teal);
-        selectedColor = ContextCompat.getColor(getContext(), R.color.highlight_selected);
-        primaryTextColor = ContextCompat.getColor(getContext(), R.color.text_primary);
-        secondaryTextColor = ContextCompat.getColor(getContext(), R.color.text_secondary);
+    public MapOverlayView(@NonNull Context c) { this(c, null); }
+    public MapOverlayView(@NonNull Context c, @Nullable AttributeSet attrs) { this(c, attrs, 0); }
+    public MapOverlayView(@NonNull Context c, @Nullable AttributeSet attrs, int style) {
+        super(c, attrs, style);
+        surface = ContextCompat.getColor(c, R.color.surface_card);
+        accent = ContextCompat.getColor(c, R.color.accent_teal);
+        highlight = ContextCompat.getColor(c, R.color.highlight_selected);
+        primary = ContextCompat.getColor(c, R.color.text_primary);
+        secondary = ContextCompat.getColor(c, R.color.text_secondary);
+        text.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12,
+                getResources().getDisplayMetrics()));
+        text.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
+        route.setStyle(Paint.Style.STROKE);
+        route.setStrokeJoin(Paint.Join.ROUND);
+        route.setStrokeCap(Paint.Cap.ROUND);
         setWillNotDraw(false);
     }
+    public void setMapView(ZoomableImageView map) { this.map = map; invalidate(); }
+    public void setActiveCategory(@Nullable MapPlace.Category category) { this.category = category; invalidate(); }
+    public void setSelectedPlace(@Nullable MapPlace place) { selected = place; invalidate(); }
+    public void setRouteVisible(boolean visible) { demo = visible; invalidate(); }
 
-    public void setMapView(@Nullable ZoomableImageView mapView) {
-        this.mapView = mapView;
-        invalidate();
+    private boolean sameAnchor(MapPlace a, MapPlace b) {
+        return Math.abs(a.getMapX() - b.getMapX()) < .0001f
+                && Math.abs(a.getMapY() - b.getMapY()) < .0001f;
     }
-
-    public void setPlaces(@NonNull List<MapPlace> places) {
-        this.places = new ArrayList<>(places);
-        invalidate();
+    private float[] point(MapPlace place) {
+        if (demo && (CampusMapData.LASALLE.equals(place.getId())
+                || CampusMapData.HENRY_SY.equals(place.getId()))) {
+            float[][] points = CampusMapData.getDemoRoutePoints();
+            float[] endpoint = points[CampusMapData.LASALLE.equals(place.getId()) ? 0 : points.length - 1];
+            return map.mapPoint(endpoint[0], endpoint[1]);
+        }
+        return map.mapPoint(place.getMapX(), place.getMapY());
     }
-
-    public void setActiveCategory(@NonNull MapPlace.Category activeCategory) {
-        this.activeCategory = activeCategory;
-        invalidate();
-    }
-
-    public void setSelectedPlace(@Nullable MapPlace selectedPlace) {
-        this.selectedPlace = selectedPlace;
-        invalidate();
-    }
-
-    public void setRouteVisible(boolean routeVisible) {
-        this.routeVisible = routeVisible;
-        invalidate();
-    }
-
-    @Override
-    protected void onDraw(@NonNull Canvas canvas) {
+    @Override protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
-        if (mapView == null) {
-            return;
+        labels.clear();
+        visiblePlaces.clear();
+        if (map == null) { return; }
+        RectF viewport = map.getMapViewport();
+        canvas.save();
+        canvas.clipRect(viewport);
+        if (demo) { drawRoute(canvas); }
+        if (selected != null) { visiblePlaces.add(selected); }
+        for (MapPlace place : CampusMapData.getPlaces()) {
+            if (place == selected || !place.hasMapMarker()
+                    || (selected != null && sameAnchor(place, selected))) { continue; }
+            if (category == null || category == place.getCategory()) { visiblePlaces.add(place); }
         }
-
-        Drawable mapDrawable = mapView.getDrawable();
-        if (mapDrawable == null || mapDrawable.getIntrinsicWidth() <= 0
-                || mapDrawable.getIntrinsicHeight() <= 0) {
-            return;
+        // Draw every marker first, so later markers cannot paint over earlier labels.
+        for (MapPlace place : visiblePlaces) {
+            float[] p = point(place);
+            if (!viewport.contains(p[0], p[1])) { continue; }
+            boolean isSelected = place == selected;
+            fill.setColor(surface);
+            canvas.drawCircle(p[0], p[1], dp(isSelected ? 10 : 6), fill);
+            fill.setColor(isSelected ? highlight : accent);
+            canvas.drawCircle(p[0], p[1], dp(isSelected ? 6 : 3), fill);
         }
-
-        float imageWidth = mapDrawable.getIntrinsicWidth();
-        float imageHeight = mapDrawable.getIntrinsicHeight();
-        imageMatrix.set(mapView.getImageMatrix());
-
-        if (routeVisible && selectedPlace != null) {
-            drawIllustrativeRoute(canvas, imageMatrix, imageWidth, imageHeight);
-        }
-
-        for (MapPlace place : places) {
-            if (place.getCategory() == activeCategory) {
-                mapPointToScreen(place.getMapX(), place.getMapY(), imageWidth, imageHeight,
-                        imageMatrix, pointBuffer);
-                float pointX = pointBuffer[0];
-                float pointY = pointBuffer[1];
-                if (isOnScreen(pointX, pointY)) {
-                    boolean selected = place == selectedPlace;
-                    drawMarker(canvas, pointX, pointY, selected);
-                    if (selected || activeCategory != MapPlace.Category.BUILDING) {
-                        drawLabel(canvas, pointX, pointY, place.getName(),
-                                place.getSubtitle(), true);
-                    }
+        // Reserve label space for selected and overview buildings before other names.
+        for (int priority = 0; priority < 3; priority++) {
+            for (MapPlace place : visiblePlaces) {
+                int level = place == selected ? 0 : place.hasOverviewLabel() ? 1 : 2;
+                if (level != priority) { continue; }
+                float[] p = point(place);
+                if (!viewport.contains(p[0], p[1])) { continue; }
+                if (place == selected || place.hasOverviewLabel() || map.getRelativeZoom() >= 1.99f
+                        || place.getCategory() != MapPlace.Category.BUILDING) {
+                    drawLabel(canvas, place, p[0], p[1], viewport);
                 }
             }
         }
-
-        if (selectedPlace != null && selectedPlace.getCategory() != activeCategory) {
-            mapPointToScreen(selectedPlace.getMapX(), selectedPlace.getMapY(), imageWidth,
-                    imageHeight, imageMatrix, pointBuffer);
-            float selectedX = pointBuffer[0];
-            float selectedY = pointBuffer[1];
-            if (isOnScreen(selectedX, selectedY)) {
-                drawMarker(canvas, selectedX, selectedY, true);
-                drawLabel(canvas, selectedX, selectedY, selectedPlace.getName(),
-                        selectedPlace.getSubtitle(), true);
-            }
+        drawMapCaption(canvas, "Taft Avenue", .067f, .55f, viewport);
+        if (map.getRelativeZoom() >= 1.99f) {
+            drawMapCaption(canvas, "Fidel Reyes St.", .41f, .83f, viewport);
+            drawMapCaption(canvas, "SJ Walkway", .665f, .47f, viewport);
+            drawMapCaption(canvas, "Castro St.", .26f, .775f, viewport);
+            drawMapCaption(canvas, "Noli St.", .75f, .989f, viewport);
         }
-
-        if (routeVisible && selectedPlace != null) {
-            drawOriginMarker(canvas, imageWidth, imageHeight, imageMatrix);
-            mapPointToScreen(selectedPlace.getMapX(), selectedPlace.getMapY(), imageWidth,
-                    imageHeight, imageMatrix, pointBuffer);
-            float destinationX = pointBuffer[0];
-            float destinationY = pointBuffer[1];
-            if (isOnScreen(destinationX, destinationY)) {
-                drawMarker(canvas, destinationX, destinationY, true);
-                drawLabel(canvas, destinationX, destinationY, selectedPlace.getName(),
-                        selectedPlace.getSubtitle(), true);
-            }
+        drawMapCaption(canvas, "N", .855f, .085f, viewport);
+        canvas.restore();
+    }
+    private void drawRoute(Canvas canvas) {
+        Path path = new Path();
+        float[][] points = CampusMapData.getDemoRoutePoints();
+        for (int i = 0; i < points.length; i++) {
+            float[] p = map.mapPoint(points[i][0], points[i][1]);
+            if (i == 0) { path.moveTo(p[0], p[1]); } else { path.lineTo(p[0], p[1]); }
         }
+        route.setColor(surface);
+        route.setStrokeWidth(dp(8));
+        route.setPathEffect(null);
+        canvas.drawPath(path, route);
+        route.setColor(highlight);
+        route.setStrokeWidth(dp(4));
+        route.setPathEffect(new DashPathEffect(new float[] {dp(8), dp(5)}, 0));
+        canvas.drawPath(path, route);
     }
-
-    private void drawIllustrativeRoute(Canvas canvas, Matrix imageMatrix, float imageWidth,
-                                       float imageHeight) {
-        routePath.reset();
-        routePath.moveTo(ORIGIN_X * imageWidth, ORIGIN_Y * imageHeight);
-        routePath.lineTo(0.27f * imageWidth, 0.71f * imageHeight);
-        routePath.lineTo(0.27f * imageWidth, 0.64f * imageHeight);
-        routePath.lineTo(0.38f * imageWidth, 0.64f * imageHeight);
-        routePath.lineTo(0.38f * imageWidth, 0.55f * imageHeight);
-        routePath.lineTo(0.56f * imageWidth, 0.55f * imageHeight);
-        routePath.lineTo(0.56f * imageWidth, selectedPlace.getMapY() * imageHeight);
-        routePath.lineTo(selectedPlace.getMapX() * imageWidth,
-                selectedPlace.getMapY() * imageHeight);
-
-        routePath.transform(imageMatrix);
-        routeOutlinePaint.setColor(surfaceColor);
-        routePaint.setColor(accentColor);
-        canvas.drawPath(routePath, routeOutlinePaint);
-        canvas.drawPath(routePath, routePaint);
-    }
-
-    private void drawOriginMarker(Canvas canvas, float imageWidth, float imageHeight,
-                                  Matrix imageMatrix) {
-        mapPointToScreen(ORIGIN_X, ORIGIN_Y, imageWidth, imageHeight, imageMatrix,
-                pointBuffer);
-        float originX = pointBuffer[0];
-        float originY = pointBuffer[1];
-        if (!isOnScreen(originX, originY)) {
+    private void drawLabel(Canvas canvas, MapPlace place, float x, float y, RectF viewport) {
+        String title = place.getShortLabel();
+        float width = text.measureText(title) + dp(16);
+        float height = text.getFontSpacing() + dp(10);
+        if (width > viewport.width() || height > viewport.height()) { return; }
+        float left = Math.max(viewport.left, Math.min(x - width / 2, viewport.right - width));
+        float above = y - height - dp(10);
+        if (place == selected) {
+            above = Math.max(viewport.top, Math.min(above, viewport.bottom - height));
+        }
+        float[] tops = { above, y + dp(10) };
+        for (float top : tops) {
+            RectF rect = new RectF(left, top, left + width, top + height);
+            if (!viewport.contains(rect) || overlaps(rect)) { continue; }
+            labels.add(new Label(place, rect));
+            fill.setColor(surface);
+            canvas.drawRoundRect(rect, dp(6), dp(6), fill);
+            text.setColor(place == selected ? highlight : primary);
+            canvas.drawText(title, rect.left + dp(8), rect.top + dp(5) - text.ascent(), text);
             return;
         }
-        drawMarker(canvas, originX, originY, true);
-        drawLabel(canvas, originX, originY,
-                getContext().getString(R.string.map_route_origin),
-                getContext().getString(R.string.map_route_demo_start), false);
     }
-
-    private void drawMarker(Canvas canvas, float x, float y, boolean selected) {
-        float outerRadius = selected ? dp(12) : dp(9);
-        float innerRadius = selected ? dp(7) : dp(5);
-        markerOutlinePaint.setColor(surfaceColor);
-        markerFillPaint.setColor(selected ? selectedColor : accentColor);
-        canvas.drawCircle(x, y, outerRadius, markerOutlinePaint);
-        canvas.drawCircle(x, y, innerRadius, markerFillPaint);
-    }
-
-    private void drawLabel(Canvas canvas, float x, float y, String title, String subtitle,
-                           boolean placeAbove) {
-        labelBackgroundPaint.setColor(surfaceColor);
-        labelOutlinePaint.setColor(accentColor);
-        labelTitlePaint.setColor(primaryTextColor);
-        labelSubtitlePaint.setColor(secondaryTextColor);
-
-        float horizontalPadding = dp(11);
-        float titleWidth = labelTitlePaint.measureText(title);
-        float subtitleWidth = labelSubtitlePaint.measureText(subtitle);
-        float labelWidth = Math.max(titleWidth, subtitleWidth) + horizontalPadding * 2;
-        float labelHeight = dp(39);
-        float left = x + dp(13);
-        if (left + labelWidth > getWidth() - dp(8)) {
-            left = x - labelWidth - dp(13);
+    private boolean overlaps(RectF rect) {
+        RectF padded = new RectF(rect);
+        padded.inset(-dp(3), -dp(3));
+        for (Label label : labels) {
+            if (RectF.intersects(padded, label.bounds)) { return true; }
         }
-        left = Math.max(dp(8), Math.min(left, getWidth() - labelWidth - dp(8)));
-
-        float top = placeAbove ? y - labelHeight - dp(12) : y + dp(13);
-        if (top < dp(8)) {
-            top = y + dp(13);
+        return false;
+    }
+    private void drawMapCaption(Canvas canvas, String caption, float x, float y, RectF viewport) {
+        float[] p = map.mapPoint(x, y);
+        float width = text.measureText(caption);
+        if (!viewport.contains(p[0], p[1]) || width > viewport.width()) { return; }
+        p[0] = Math.max(viewport.left + width / 2,
+                Math.min(p[0], viewport.right - width / 2));
+        RectF rect = new RectF(p[0] - width / 2, p[1] + text.ascent(),
+                p[0] + width / 2, p[1] - text.ascent());
+        if (!viewport.contains(rect) || overlaps(rect)) { return; }
+        text.setColor(secondary);
+        canvas.drawText(caption, rect.left, p[1], text);
+        // Street names also reserve space, although they are not selectable places.
+        labels.add(new Label(null, rect));
+    }
+    /** Nearest visible marker within a 48dp target; a visible label is also a target. */
+    @Nullable public MapPlace findPlaceAt(float x, float y) {
+        if (map == null || !map.getMapViewport().contains(x, y)) { return null; }
+        // A name drawn over a marker should receive the tap on its visible text.
+        for (Label label : labels) {
+            if (label.place != null && label.bounds.contains(x, y)) { return label.place; }
         }
-        if (top + labelHeight > getHeight() - dp(8)) {
-            top = Math.max(dp(8), y - labelHeight - dp(12));
+        MapPlace nearest = null;
+        double distance = dp(24);
+        for (MapPlace place : visiblePlaces) {
+            float[] p = point(place);
+            if (!map.getMapViewport().contains(p[0], p[1])) { continue; }
+            double d = Math.hypot(x - p[0], y - p[1]);
+            if (d < distance) { distance = d; nearest = place; }
         }
-
-        labelRect.set(left, top, left + labelWidth, top + labelHeight);
-        canvas.drawRoundRect(labelRect, dp(12), dp(12), labelBackgroundPaint);
-        canvas.drawRoundRect(labelRect, dp(12), dp(12), labelOutlinePaint);
-        canvas.drawText(title, left + horizontalPadding, top + dp(16), labelTitlePaint);
-        canvas.drawText(subtitle, left + horizontalPadding, top + dp(31), labelSubtitlePaint);
+        if (nearest != null) { return nearest; }
+        double labelDistance = Double.MAX_VALUE;
+        for (Label label : labels) {
+            if (label.place == null) { continue; }
+            RectF target = new RectF(label.bounds);
+            target.inset(-Math.max(0, (dp(48) - target.width()) / 2),
+                    -Math.max(0, (dp(48) - target.height()) / 2));
+            double d = Math.hypot(x - target.centerX(), y - target.centerY());
+            if (target.contains(x, y) && d < labelDistance) {
+                nearest = label.place;
+                labelDistance = d;
+            }
+        }
+        return nearest;
     }
-
-    private void mapPointToScreen(float normalizedX, float normalizedY, float imageWidth,
-                                  float imageHeight, Matrix imageMatrix, float[] outputPoint) {
-        outputPoint[0] = normalizedX * imageWidth;
-        outputPoint[1] = normalizedY * imageHeight;
-        imageMatrix.mapPoints(outputPoint);
-    }
-
-    private boolean isOnScreen(float x, float y) {
-        return x >= -dp(24) && x <= getWidth() + dp(24)
-                && y >= -dp(24) && y <= getHeight() + dp(24);
-    }
-
-    private float dp(float value) {
-        return value * getResources().getDisplayMetrics().density;
-    }
-
-    private float sp(float value) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value,
-                getResources().getDisplayMetrics());
-    }
+    private float dp(float value) { return value * getResources().getDisplayMetrics().density; }
 }
