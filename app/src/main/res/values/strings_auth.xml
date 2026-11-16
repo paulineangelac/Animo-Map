@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text for the Login and Register screens. Kept in its own file so it doesn't clash with strings.xml. -->
+<resources>
+    <!-- Login -->
+    <string name="login_title">Log in</string>
+    <string name="login_subtitle">Use your DLSU email to find your way around campus.</string>
+    <string name="login_button">Log in</string>
+    <string name="login_no_account">New to Animo Map?</string>
+    <string name="login_go_to_register">Create an account</string>
+    <string name="login_dlsu_note">Only DLSU accounts (@dlsu.edu.ph) can use Animo Map.</string>
+
+    <!-- Register -->
+    <string name="register_title">Create account</string>
+    <string name="register_subtitle">Join Animo Map to find, rate, and share places around DLSU.</string>
+    <string name="register_button">Create account</string>
+    <string name="register_have_account">Already have an account?</string>
+    <string name="register_go_to_login">Log in</string>
+    <string name="register_back">Back to log in</string>
+
+    <!-- Field labels and hints -->
+    <string name="label_full_name">Full name</string>
+    <string name="label_birthday">Birthday</string>
+    <string name="label_email">DLSU email</string>
+    <string name="label_password">Password</string>
+    <string name="label_confirm_password">Confirm password</string>
+    <string name="hint_full_name">Juan Dela Cruz</string>
+    <string name="hint_birthday">Tap to choose a date</string>
+    <string name="hint_email">juan_delacruz@dlsu.edu.ph</string>
+    <string name="hint_password">Enter your password</string>
+    <string name="hint_new_password">At least 8 characters</string>
+    <string name="hint_confirm_password">Type your password again</string>
+</resources>
