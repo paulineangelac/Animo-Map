@@ -5,18 +5,43 @@
     <string name="nav_map">Map</string>
     <string name="nav_community">Community</string>
     <string name="nav_groups">Groups</string>
+    <string name="nav_profile">Profile</string>
 
     <!-- Destination Screen Titles -->
     <string name="title_map">Map</string>
     <string name="title_community">Community</string>
     <string name="title_groups">Groups</string>
+    <string name="title_profile">Profile</string>
+    <string name="notification_icon_description">Notifications</string>
+    <string name="groups_continue_title">Continue with your group</string>
+    <string name="groups_featured_name">CCS Friends</string>
+    <string name="groups_featured_detail">5 members · 3 on campus</string>
+    <string name="groups_featured_action">Open group</string>
+    <string name="profile_sample_name">Alex Santos</string>
+    <string name="profile_sample_username">\@alexsantos</string>
+    <string name="profile_sample_bio">DLSU student sharing campus finds and tips.</string>
+    <string name="profile_contributions">My Contributions</string>
+    <string name="profile_posts_heading">Posts</string>
+    <string name="profile_reviews_heading">Reviews</string>
+    <string name="profile_sample_post_title">A quiet place to study</string>
+    <string name="profile_sample_post_detail">Campus Tips · Shared 2 days ago</string>
+    <string name="profile_sample_review_title">Henry Sy Sr. Hall</string>
+    <string name="profile_sample_review_detail">Study space · Comfortable and quiet</string>
+    <string name="profile_avatar_description">Profile avatar for Alex Santos</string>
 
     <!-- Placeholders -->
     <string name="placeholder_map">Map screen placeholder. Interactive DLSU campus map coming soon.</string>
     <string name="placeholder_groups">Groups screen placeholder. Private groups and presence sharing coming soon.</string>
 
     <!-- Map search, filters, and illustrative prototype data -->
-    <string name="map_search_hint">Search buildings, rooms, or places</string>
+    <string name="map_search_hint">What are you looking for?</string>
+    <string name="map_search_landing_label">Search buildings, rooms, or places</string>
+    <string name="map_search_recent_heading">Recently searched</string>
+    <string name="map_search_results_heading">Search results</string>
+    <string name="map_search_empty">No matching places found.</string>
+    <string name="map_close_search">Close search</string>
+    <string name="map_voice_search_description">Voice search</string>
+    <string name="map_recent_place_description">Recently searched</string>
     <string name="map_search_icon_description">Search</string>
     <string name="map_clear_search">Clear search</string>
     <string name="map_filter_route">Route</string>
