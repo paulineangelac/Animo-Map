@@ -7,7 +7,6 @@ import android.graphics.Color;
  * Builds the dark overlay that covers everything outside the campus.
  * Right at the campus edge the overlay is clear; it gets darker over {@code fadeMeters} until it
  * reaches full strength, so the edge looks soft instead of cut off.
- *
  * The bitmap covers the camera bounds in CampusMapData (north-up, one pixel = a few meters).
  */
 final class CampusMask {

@@ -3,6 +3,7 @@ package com.itismob.s02.group5.animomap.ui.map;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Campus places as latitude/longitude pairs.
@@ -87,18 +88,14 @@ public final class CampusMapData {
     }
     private static void building(List<MapPlace> p, String id, String name, String label,
                                  double lat, double lng) {
-        add(p, id, name, label, "Building", MapPlace.Category.BUILDING, lat, lng, true);
-    }
-    private static void add(List<MapPlace> p, String id, String name, String label,
-                            String subtitle, MapPlace.Category category, double lat, double lng,
-                            boolean marker) {
-        p.add(new MapPlace(id, name, label, subtitle, category, lat, lng, marker));
+        p.add(new MapPlace(id, name, label, "Building", MapPlace.Category.BUILDING, lat, lng, true));
     }
     public static boolean hasDemoRoute(String destinationId) { return HENRY_SY.equals(destinationId); }
 
     /** {latitude, longitude} pairs for the demo line: a straight line, not a walkable path. */
     public static double[][] getDemoRoutePoints() {
-        MapPlace from = findPlace(LASALLE), to = findPlace(HENRY_SY);
+        MapPlace from = Objects.requireNonNull(findPlace(LASALLE));
+        MapPlace to = Objects.requireNonNull(findPlace(HENRY_SY));
         return new double[][] {
                 { from.getLatitude(), from.getLongitude() },
                 { to.getLatitude(), to.getLongitude() }

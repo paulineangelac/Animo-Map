@@ -44,15 +44,14 @@ import com.mapbox.maps.MapView;
 import com.mapbox.maps.MapboxDelicateApi;
 import com.mapbox.maps.MapboxMap;
 import com.mapbox.maps.Style;
-import com.mapbox.maps.extension.style.layers.LayerUtils;
 import com.mapbox.maps.extension.style.layers.generated.FillLayer;
 import com.mapbox.maps.extension.style.layers.generated.RasterLayer;
 import com.mapbox.maps.extension.style.layers.properties.generated.TextAnchor;
-import com.mapbox.maps.extension.style.sources.SourceUtils;
 import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource;
 import com.mapbox.maps.extension.style.sources.generated.ImageSource;
 import com.mapbox.maps.plugin.animation.CameraAnimationsUtils;
 import com.mapbox.maps.plugin.animation.MapAnimationOptions;
+import com.mapbox.maps.plugin.annotation.AnnotationConfig;
 import com.mapbox.maps.plugin.annotation.AnnotationsUtils;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotation;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager;
@@ -85,7 +84,7 @@ public class MapFragment extends Fragment {
     private Bitmap dotIcon, selectedDotIcon;
     private EdgeInsets padding = new EdgeInsets(0, 0, 0, 0);
     private AutoCompleteTextView search;
-    private ImageButton clear, zoomIn, zoomOut;
+    private ImageButton clear;
     private TextView title, subtitle, categoryText, notice;
     private MaterialButton directions;
     private ChipGroup filters;
@@ -110,8 +109,6 @@ public class MapFragment extends Fragment {
         mapView = view.findViewById(R.id.mapbox_map);
         search = view.findViewById(R.id.et_map_search);
         clear = view.findViewById(R.id.btn_clear_map_search);
-        zoomIn = view.findViewById(R.id.btn_map_zoom_in);
-        zoomOut = view.findViewById(R.id.btn_map_zoom_out);
         title = view.findViewById(R.id.tv_map_place_name);
         ViewCompat.setAccessibilityHeading(title, true);
         subtitle = view.findViewById(R.id.tv_map_place_subtitle);
@@ -142,8 +139,8 @@ public class MapFragment extends Fragment {
             clearSelection();
             showOverview();
         });
-        zoomIn.setOnClickListener(button -> zoomBy(1));
-        zoomOut.setOnClickListener(button -> zoomBy(-1));
+        view.findViewById(R.id.btn_map_zoom_in).setOnClickListener(button -> zoomBy(1));
+        view.findViewById(R.id.btn_map_zoom_out).setOnClickListener(button -> zoomBy(-1));
         view.findViewById(R.id.btn_map_overview).setOnClickListener(button -> showOverview());
         view.findViewById(R.id.btn_close_map_place).setOnClickListener(button -> clearSelection());
         directions.setOnClickListener(button -> {
@@ -208,10 +205,11 @@ public class MapFragment extends Fragment {
         // The dark style matches the app's dark design system.
         mapboxMap.loadStyle(Style.DARK, style -> {
             addOutsideCampusMask(style);
+            AnnotationConfig noConfig = null; // use the default annotation layer settings
             markers = PointAnnotationManagerKt.createPointAnnotationManager(
-                    AnnotationsUtils.getAnnotations(mapView), (com.mapbox.maps.plugin.annotation.AnnotationConfig) null);
+                    AnnotationsUtils.getAnnotations(mapView), noConfig);
             routeLine = PolylineAnnotationManagerKt.createPolylineAnnotationManager(
-                    AnnotationsUtils.getAnnotations(mapView), (com.mapbox.maps.plugin.annotation.AnnotationConfig) null);
+                    AnnotationsUtils.getAnnotations(mapView), noConfig);
             markers.setIconAllowOverlap(true);
             markers.setTextOptional(true);
             markers.addClickListener(annotation -> {
@@ -240,18 +238,18 @@ public class MapFragment extends Fragment {
         List<Point> bounds = Arrays.asList(
                 Point.fromLngLat(w, s), Point.fromLngLat(w, n), Point.fromLngLat(e, n),
                 Point.fromLngLat(e, s), Point.fromLngLat(w, s));
-        SourceUtils.addSource(style, new GeoJsonSource.Builder("campus-mask-source")
-                .geometry(Polygon.fromLngLats(Arrays.asList(world, bounds))).build());
+        new GeoJsonSource.Builder("campus-mask-source")
+                .geometry(Polygon.fromLngLats(Arrays.asList(world, bounds))).build().bindTo(style);
         FillLayer outside = new FillLayer("campus-mask-layer", "campus-mask-source");
         outside.fillColor(color);
         outside.fillOpacity(MASK_OPACITY);
-        LayerUtils.addLayer(style, outside);
+        outside.bindTo(style);
 
-        SourceUtils.addSource(style, new ImageSource.Builder("campus-fade-source")
+        new ImageSource.Builder("campus-fade-source")
                 .coordinates(Arrays.asList(
                         Arrays.asList(w, n), Arrays.asList(e, n),
                         Arrays.asList(e, s), Arrays.asList(w, s)))
-                .build());
+                .build().bindTo(style);
         Bitmap fade = CampusMask.create(color, (int) Math.round(MASK_OPACITY * 255),
                 MASK_FADE_METERS, 2.0);
         ByteBuffer pixels = ByteBuffer.allocateDirect(fade.getByteCount());
@@ -261,7 +259,7 @@ public class MapFragment extends Fragment {
                 new com.mapbox.maps.Image(fade.getWidth(), fade.getHeight(), new DataRef(pixels)));
         RasterLayer layer = new RasterLayer("campus-fade-layer", "campus-fade-source");
         layer.rasterFadeDuration(0.0);
-        LayerUtils.addLayer(style, layer);
+        layer.bindTo(style);
     }
     private CameraOptions overviewCamera() {
         return new CameraOptions.Builder()
