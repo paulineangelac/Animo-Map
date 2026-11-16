@@ -32,7 +32,9 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.ChipGroup;
 import com.itismob.s02.group5.animomap.R;
+import com.mapbox.bindgen.DataRef;
 import com.mapbox.geojson.Point;
+import com.mapbox.geojson.Polygon;
 import com.mapbox.maps.CameraBoundsOptions;
 import com.mapbox.maps.CameraOptions;
 import com.mapbox.maps.CoordinateBounds;
@@ -40,7 +42,13 @@ import com.mapbox.maps.EdgeInsets;
 import com.mapbox.maps.MapView;
 import com.mapbox.maps.MapboxMap;
 import com.mapbox.maps.Style;
+import com.mapbox.maps.extension.style.layers.LayerUtils;
+import com.mapbox.maps.extension.style.layers.generated.FillLayer;
+import com.mapbox.maps.extension.style.layers.generated.RasterLayer;
 import com.mapbox.maps.extension.style.layers.properties.generated.TextAnchor;
+import com.mapbox.maps.extension.style.sources.SourceUtils;
+import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource;
+import com.mapbox.maps.extension.style.sources.generated.ImageSource;
 import com.mapbox.maps.plugin.animation.CameraAnimationsUtils;
 import com.mapbox.maps.plugin.animation.MapAnimationOptions;
 import com.mapbox.maps.plugin.annotation.AnnotationsUtils;
@@ -51,6 +59,7 @@ import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions;
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager;
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManagerKt;
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -61,6 +70,9 @@ import java.util.Map;
 public class MapFragment extends Fragment {
     private static final double FOCUS_ZOOM = 17.5;
     private static final long CAMERA_MS = 600L;
+    /** Darkness outside the campus (0-1) and how far outside the edge it takes to reach it. */
+    private static final double MASK_OPACITY = 0.8;
+    private static final double MASK_FADE_METERS = 30.0;
 
     private View root, header, controls, card;
     private MapView mapView;
@@ -177,7 +189,7 @@ public class MapFragment extends Fragment {
                 .bounds(new CoordinateBounds(
                         Point.fromLngLat(CampusMapData.WEST, CampusMapData.SOUTH),
                         Point.fromLngLat(CampusMapData.EAST, CampusMapData.NORTH)))
-                .minZoom(14.5)
+                .minZoom(CampusMapData.MIN_ZOOM)
                 .maxZoom(20.0)
                 .build());
         if (cameraToRestore != null && cameraToRestore.length == 5) {
@@ -193,6 +205,7 @@ public class MapFragment extends Fragment {
         selectedDotIcon = createDot(true);
         // The dark style matches the app's dark design system.
         mapboxMap.loadStyle(Style.DARK, style -> {
+            addOutsideCampusMask(style);
             markers = PointAnnotationManagerKt.createPointAnnotationManager(
                     AnnotationsUtils.getAnnotations(mapView), (com.mapbox.maps.plugin.annotation.AnnotationConfig) null);
             routeLine = PolylineAnnotationManagerKt.createPolylineAnnotationManager(
@@ -206,6 +219,47 @@ public class MapFragment extends Fragment {
             });
             renderMap();
         });
+    }
+    /**
+     * Darkens everything outside the campus, fading in gradually from the campus edge. Two parts,
+     * both added before the markers so they stay on top:
+     * a flat dark fill outside the camera bounds, and a gradient picture (CampusMask) covering the
+     * bounds that is clear on campus and reaches the same darkness MASK_FADE_METERS outside it.
+     */
+    private void addOutsideCampusMask(Style style) {
+        int color = ContextCompat.getColor(requireContext(), R.color.bg_primary);
+        double w = CampusMapData.WEST, e = CampusMapData.EAST;
+        double s = CampusMapData.SOUTH, n = CampusMapData.NORTH;
+
+        List<Point> world = Arrays.asList(
+                Point.fromLngLat(-180.0, -85.0), Point.fromLngLat(180.0, -85.0),
+                Point.fromLngLat(180.0, 85.0), Point.fromLngLat(-180.0, 85.0),
+                Point.fromLngLat(-180.0, -85.0));
+        List<Point> bounds = Arrays.asList(
+                Point.fromLngLat(w, s), Point.fromLngLat(w, n), Point.fromLngLat(e, n),
+                Point.fromLngLat(e, s), Point.fromLngLat(w, s));
+        SourceUtils.addSource(style, new GeoJsonSource.Builder("campus-mask-source")
+                .geometry(Polygon.fromLngLats(Arrays.asList(world, bounds))).build());
+        FillLayer outside = new FillLayer("campus-mask-layer", "campus-mask-source");
+        outside.fillColor(color);
+        outside.fillOpacity(MASK_OPACITY);
+        LayerUtils.addLayer(style, outside);
+
+        SourceUtils.addSource(style, new ImageSource.Builder("campus-fade-source")
+                .coordinates(Arrays.asList(
+                        Arrays.asList(w, n), Arrays.asList(e, n),
+                        Arrays.asList(e, s), Arrays.asList(w, s)))
+                .build());
+        Bitmap fade = CampusMask.create(color, (int) Math.round(MASK_OPACITY * 255),
+                MASK_FADE_METERS, 2.0);
+        ByteBuffer pixels = ByteBuffer.allocateDirect(fade.getByteCount());
+        fade.copyPixelsToBuffer(pixels);
+        pixels.rewind();
+        style.updateStyleImageSourceImage("campus-fade-source",
+                new com.mapbox.maps.Image(fade.getWidth(), fade.getHeight(), new DataRef(pixels)));
+        RasterLayer layer = new RasterLayer("campus-fade-layer", "campus-fade-source");
+        layer.rasterFadeDuration(0.0);
+        LayerUtils.addLayer(style, layer);
     }
     private CameraOptions overviewCamera() {
         return new CameraOptions.Builder()
