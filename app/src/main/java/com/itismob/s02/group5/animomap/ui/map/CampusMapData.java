@@ -3,6 +3,7 @@ package com.itismob.s02.group5.animomap.ui.map;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Campus places as latitude/longitude pairs.
@@ -14,7 +15,6 @@ public final class CampusMapData {
     /** Initial camera target (roughly the middle of the campus) and zoom. */
     public static final double CENTER_LAT = 14.564794, CENTER_LNG = 120.993346;
     public static final double OVERVIEW_ZOOM = 17.2;
-    /** Campus grounds traced along the streets as {latitude, longitude} corners. The map dims everything outside it. */
     private static final double[][] CAMPUS_OUTLINE = {
             { 14.563954, 120.9944315 },
             { 14.5679559, 120.9925815 },
@@ -59,14 +59,12 @@ public final class CampusMapData {
             { 14.5635972, 120.9936736 },
             { 14.5636606, 120.9938017 }
     };
-    /** The map cannot be dragged outside these bounds (the outline plus a small margin). */
     public static final double SOUTH = 14.5628, WEST = 120.9905, NORTH = 14.5688, EAST = 120.9953;
     public static final double MIN_ZOOM = 16.0;
     private static final List<MapPlace> PLACES = createPlaces();
     private CampusMapData() { }
 
     public static List<MapPlace> getPlaces() { return PLACES; }
-    /** Copy of the campus outline as {latitude, longitude} corners. */
     public static double[][] getCampusOutline() {
         double[][] copy = new double[CAMPUS_OUTLINE.length][];
         for (int i = 0; i < copy.length; i++) { copy[i] = CAMPUS_OUTLINE[i].clone(); }
@@ -87,18 +85,14 @@ public final class CampusMapData {
     }
     private static void building(List<MapPlace> p, String id, String name, String label,
                                  double lat, double lng) {
-        add(p, id, name, label, "Building", MapPlace.Category.BUILDING, lat, lng, true);
-    }
-    private static void add(List<MapPlace> p, String id, String name, String label,
-                            String subtitle, MapPlace.Category category, double lat, double lng,
-                            boolean marker) {
-        p.add(new MapPlace(id, name, label, subtitle, category, lat, lng, marker));
+        p.add(new MapPlace(id, name, label, "Building", MapPlace.Category.BUILDING, lat, lng, true));
     }
     public static boolean hasDemoRoute(String destinationId) { return HENRY_SY.equals(destinationId); }
 
     /** {latitude, longitude} pairs for the demo line: a straight line, not a walkable path. */
     public static double[][] getDemoRoutePoints() {
-        MapPlace from = findPlace(LASALLE), to = findPlace(HENRY_SY);
+        MapPlace from = Objects.requireNonNull(findPlace(LASALLE));
+        MapPlace to = Objects.requireNonNull(findPlace(HENRY_SY));
         return new double[][] {
                 { from.getLatitude(), from.getLongitude() },
                 { to.getLatitude(), to.getLongitude() }

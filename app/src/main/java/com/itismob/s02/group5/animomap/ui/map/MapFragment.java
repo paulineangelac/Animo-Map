@@ -44,15 +44,14 @@ import com.mapbox.maps.MapView;
 import com.mapbox.maps.MapboxDelicateApi;
 import com.mapbox.maps.MapboxMap;
 import com.mapbox.maps.Style;
-import com.mapbox.maps.extension.style.layers.LayerUtils;
 import com.mapbox.maps.extension.style.layers.generated.FillLayer;
 import com.mapbox.maps.extension.style.layers.generated.RasterLayer;
 import com.mapbox.maps.extension.style.layers.properties.generated.TextAnchor;
-import com.mapbox.maps.extension.style.sources.SourceUtils;
 import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource;
 import com.mapbox.maps.extension.style.sources.generated.ImageSource;
 import com.mapbox.maps.plugin.animation.CameraAnimationsUtils;
 import com.mapbox.maps.plugin.animation.MapAnimationOptions;
+import com.mapbox.maps.plugin.annotation.AnnotationConfig;
 import com.mapbox.maps.plugin.annotation.AnnotationsUtils;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotation;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager;
@@ -72,7 +71,6 @@ import java.util.Map;
 public class MapFragment extends Fragment {
     private static final double FOCUS_ZOOM = 17.5;
     private static final long CAMERA_MS = 600L;
-    /** Darkness outside the campus (0-1) and how far outside the edge it takes to reach it. */
     private static final double MASK_OPACITY = 0.8;
     private static final double MASK_FADE_METERS = 30.0;
 
@@ -85,7 +83,7 @@ public class MapFragment extends Fragment {
     private Bitmap dotIcon, selectedDotIcon;
     private EdgeInsets padding = new EdgeInsets(0, 0, 0, 0);
     private AutoCompleteTextView search;
-    private ImageButton clear, zoomIn, zoomOut;
+    private ImageButton clear;
     private TextView title, subtitle, categoryText, notice;
     private MaterialButton directions;
     private ChipGroup filters;
@@ -110,8 +108,6 @@ public class MapFragment extends Fragment {
         mapView = view.findViewById(R.id.mapbox_map);
         search = view.findViewById(R.id.et_map_search);
         clear = view.findViewById(R.id.btn_clear_map_search);
-        zoomIn = view.findViewById(R.id.btn_map_zoom_in);
-        zoomOut = view.findViewById(R.id.btn_map_zoom_out);
         title = view.findViewById(R.id.tv_map_place_name);
         ViewCompat.setAccessibilityHeading(title, true);
         subtitle = view.findViewById(R.id.tv_map_place_subtitle);
@@ -142,8 +138,8 @@ public class MapFragment extends Fragment {
             clearSelection();
             showOverview();
         });
-        zoomIn.setOnClickListener(button -> zoomBy(1));
-        zoomOut.setOnClickListener(button -> zoomBy(-1));
+        view.findViewById(R.id.btn_map_zoom_in).setOnClickListener(button -> zoomBy(1));
+        view.findViewById(R.id.btn_map_zoom_out).setOnClickListener(button -> zoomBy(-1));
         view.findViewById(R.id.btn_map_overview).setOnClickListener(button -> showOverview());
         view.findViewById(R.id.btn_close_map_place).setOnClickListener(button -> clearSelection());
         directions.setOnClickListener(button -> {
@@ -208,10 +204,11 @@ public class MapFragment extends Fragment {
         // The dark style matches the app's dark design system.
         mapboxMap.loadStyle(Style.DARK, style -> {
             addOutsideCampusMask(style);
+            AnnotationConfig noConfig = null;
             markers = PointAnnotationManagerKt.createPointAnnotationManager(
-                    AnnotationsUtils.getAnnotations(mapView), (com.mapbox.maps.plugin.annotation.AnnotationConfig) null);
+                    AnnotationsUtils.getAnnotations(mapView), noConfig);
             routeLine = PolylineAnnotationManagerKt.createPolylineAnnotationManager(
-                    AnnotationsUtils.getAnnotations(mapView), (com.mapbox.maps.plugin.annotation.AnnotationConfig) null);
+                    AnnotationsUtils.getAnnotations(mapView), noConfig);
             markers.setIconAllowOverlap(true);
             markers.setTextOptional(true);
             markers.addClickListener(annotation -> {
@@ -222,12 +219,6 @@ public class MapFragment extends Fragment {
             renderMap();
         });
     }
-    /**
-     * Darkens everything outside the campus, fading in gradually from the campus edge. Two parts,
-     * both added before the markers so they stay on top:
-     * a flat dark fill outside the camera bounds, and a gradient picture (CampusMask) covering the
-     * bounds that is clear on campus and reaches the same darkness MASK_FADE_METERS outside it.
-     */
     private void addOutsideCampusMask(Style style) {
         int color = ContextCompat.getColor(requireContext(), R.color.bg_primary);
         double w = CampusMapData.WEST, e = CampusMapData.EAST;
@@ -240,18 +231,18 @@ public class MapFragment extends Fragment {
         List<Point> bounds = Arrays.asList(
                 Point.fromLngLat(w, s), Point.fromLngLat(w, n), Point.fromLngLat(e, n),
                 Point.fromLngLat(e, s), Point.fromLngLat(w, s));
-        SourceUtils.addSource(style, new GeoJsonSource.Builder("campus-mask-source")
-                .geometry(Polygon.fromLngLats(Arrays.asList(world, bounds))).build());
+        new GeoJsonSource.Builder("campus-mask-source")
+                .geometry(Polygon.fromLngLats(Arrays.asList(world, bounds))).build().bindTo(style);
         FillLayer outside = new FillLayer("campus-mask-layer", "campus-mask-source");
         outside.fillColor(color);
         outside.fillOpacity(MASK_OPACITY);
-        LayerUtils.addLayer(style, outside);
+        outside.bindTo(style);
 
-        SourceUtils.addSource(style, new ImageSource.Builder("campus-fade-source")
+        new ImageSource.Builder("campus-fade-source")
                 .coordinates(Arrays.asList(
                         Arrays.asList(w, n), Arrays.asList(e, n),
                         Arrays.asList(e, s), Arrays.asList(w, s)))
-                .build());
+                .build().bindTo(style);
         Bitmap fade = CampusMask.create(color, (int) Math.round(MASK_OPACITY * 255),
                 MASK_FADE_METERS, 2.0);
         ByteBuffer pixels = ByteBuffer.allocateDirect(fade.getByteCount());
@@ -261,7 +252,7 @@ public class MapFragment extends Fragment {
                 new com.mapbox.maps.Image(fade.getWidth(), fade.getHeight(), new DataRef(pixels)));
         RasterLayer layer = new RasterLayer("campus-fade-layer", "campus-fade-source");
         layer.rasterFadeDuration(0.0);
-        LayerUtils.addLayer(style, layer);
+        layer.bindTo(style);
     }
     private CameraOptions overviewCamera() {
         return new CameraOptions.Builder()
@@ -269,7 +260,7 @@ public class MapFragment extends Fragment {
                 .zoom(CampusMapData.OVERVIEW_ZOOM).bearing(0.0).pitch(0.0)
                 .build();
     }
-    /** Draws a round marker as a bitmap, using the app palette. */
+
     private Bitmap createDot(boolean isSelected) {
         int size = dp(isSelected ? 36 : 28);
         Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
@@ -282,7 +273,7 @@ public class MapFragment extends Fragment {
         canvas.drawCircle(size / 2f, size / 2f, dp(isSelected ? 6 : 3.5f), paint);
         return bitmap;
     }
-    /** Redraws markers and the demo route for the current filter, selection, and route state. */
+
     private void renderMap() {
         if (markers == null || routeLine == null) { return; }
         markers.deleteAll();
@@ -344,7 +335,7 @@ public class MapFragment extends Fragment {
                 .zoom(Math.max(mapboxMap.getCameraState().getZoom(), FOCUS_ZOOM))
                 .build());
     }
-    /** Fits the whole demo route and both of its buildings on screen. */
+
     @OptIn(markerClass = MapboxDelicateApi.class)
     private void focusOnRoute() {
         List<Point> points = new ArrayList<>();
@@ -459,11 +450,7 @@ public class MapFragment extends Fragment {
         }
         root.requestLayout();
     }
-    /**
-     * Sizes the header and place card from measured UI, keeps the zoom buttons clear of the card,
-     * and tells the map how much of its area is covered so camera moves center in the open space.
-     * Returns true once the layout has settled.
-     */
+
     private boolean updateViewport() {
         if (root.getWidth() == 0 || root.getHeight() == 0 || header.getHeight() == 0) { return false; }
         boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
