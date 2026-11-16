@@ -67,7 +67,7 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
 
         if (post.isPoiCandidate()) {
             holder.candidateLabel.setVisibility(View.VISIBLE);
-            holder.postCard.setStrokeColor(context.getColor(R.color.accent_teal));
+            holder.postCard.setStrokeColor(context.getColor(R.color.border_subtle));
             holder.postCard.setStrokeWidth(context.getResources().getDimensionPixelSize(
                     R.dimen.community_candidate_stroke_width));
         } else {

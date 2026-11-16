@@ -30,6 +30,8 @@ public class GroupsFragment extends Fragment {
     private TextView sharingStatusTitle;
     private TextView sharingStatusSubtitle;
     private TextView sharingStatusBadge;
+    private TextView featuredGroupName;
+    private TextView featuredGroupDetail;
 
     private boolean isLocationSharingOn = false;
     private String selectedAudience = "Off (Private)";
@@ -53,6 +55,8 @@ public class GroupsFragment extends Fragment {
         sharingStatusTitle = view.findViewById(R.id.sharing_status_title);
         sharingStatusSubtitle = view.findViewById(R.id.sharing_status_subtitle);
         sharingStatusBadge = view.findViewById(R.id.sharing_status_badge);
+        featuredGroupName = view.findViewById(R.id.groups_featured_name);
+        featuredGroupDetail = view.findViewById(R.id.groups_featured_detail);
 
         View btnChooseLocation = view.findViewById(R.id.btn_choose_location);
         View btnCreateGroup = view.findViewById(R.id.btn_create_group);
@@ -77,7 +81,23 @@ public class GroupsFragment extends Fragment {
         }
 
         updateLocationSharingUI();
+        updateFeaturedGroup();
         renderGroupsList();
+    }
+
+    private void updateFeaturedGroup() {
+        if (groupList.isEmpty() || featuredGroupName == null || featuredGroupDetail == null) {
+            return;
+        }
+
+        GroupItem featuredGroup = groupList.get(0);
+        featuredGroupName.setText(featuredGroup.getName());
+        featuredGroupDetail.setText(featuredGroup.getUpdateStatus());
+        View featuredCard = getView() == null ? null : getView().findViewById(R.id.groups_featured_card);
+        if (featuredCard != null) {
+            featuredCard.setOnClickListener(v -> showMessage(
+                    getString(R.string.groups_selected_feedback, featuredGroup.getName())));
+        }
     }
 
     private void showAudienceSelectionDialog() {
@@ -175,6 +195,7 @@ public class GroupsFragment extends Fragment {
             );
 
             groupList.add(newGroup);
+            updateFeaturedGroup();
             renderGroupsList();
             showMessage(getString(R.string.groups_created_success, name));
             dialog.dismiss();

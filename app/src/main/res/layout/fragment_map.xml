@@ -34,11 +34,11 @@
             android:id="@+id/map_search_card"
             android:layout_width="match_parent"
             android:layout_height="58dp"
+            android:stateListAnimator="@null"
             app:cardBackgroundColor="@color/surface_card"
-            app:cardCornerRadius="18dp"
-            app:cardElevation="6dp"
-            app:strokeColor="@color/surface_elevated"
-            app:strokeWidth="1dp">
+            app:cardCornerRadius="26dp"
+            app:cardElevation="4dp"
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -46,7 +46,7 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingStart="16dp"
-                android:paddingEnd="8dp">
+                android:paddingEnd="16dp">
 
                 <ImageView
                     android:layout_width="24dp"
@@ -55,24 +55,18 @@
                     android:src="@drawable/ic_map_search"
                     app:tint="@color/accent_teal" />
 
-                <AutoCompleteTextView
-                    android:id="@+id/et_map_search"
+                <TextView
+                    android:id="@+id/tv_map_search_prompt"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_marginStart="12dp"
                     android:layout_weight="1"
-                    android:background="@android:color/transparent"
-                    android:completionThreshold="1"
-                    android:dropDownVerticalOffset="4dp"
-                    android:hint="@string/map_search_hint"
-                    android:imeOptions="actionSearch"
-                    android:inputType="text"
-                    android:padding="0dp"
-                    android:popupBackground="@color/surface_card"
-                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:gravity="center_vertical"
+                    android:maxLines="1"
+                    android:text="@string/map_search_landing_label"
                     android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_secondary"
-                    android:textSize="16sp" />
+                    android:textSize="15sp" />
 
                 <ImageButton
                     android:id="@+id/btn_clear_map_search"
@@ -83,7 +77,7 @@
                     android:padding="10dp"
                     android:src="@drawable/ic_map_close"
                     app:tint="@color/text_secondary"
-                    android:visibility="invisible" />
+                    android:visibility="gone" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -115,10 +109,10 @@
                     android:textStyle="bold"
                     app:checkedIconVisible="false"
                     app:chipBackgroundColor="@color/map_filter_chip_background"
-                    app:chipCornerRadius="24dp"
+                    app:chipCornerRadius="18dp"
                     app:chipMinHeight="46dp"
                     app:chipStrokeColor="@color/map_filter_chip_stroke"
-                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeWidth="0dp"
                     android:textColor="@color/map_filter_chip_text" />
 
                 <com.google.android.material.chip.Chip
@@ -133,10 +127,10 @@
                     android:textStyle="bold"
                     app:checkedIconVisible="false"
                     app:chipBackgroundColor="@color/map_filter_chip_background"
-                    app:chipCornerRadius="24dp"
+                    app:chipCornerRadius="18dp"
                     app:chipMinHeight="46dp"
                     app:chipStrokeColor="@color/map_filter_chip_stroke"
-                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeWidth="0dp"
                     android:textColor="@color/map_filter_chip_text" />
 
                 <com.google.android.material.chip.Chip
@@ -150,10 +144,10 @@
                     android:textStyle="bold"
                     app:checkedIconVisible="false"
                     app:chipBackgroundColor="@color/map_filter_chip_background"
-                    app:chipCornerRadius="24dp"
+                    app:chipCornerRadius="18dp"
                     app:chipMinHeight="46dp"
                     app:chipStrokeColor="@color/map_filter_chip_stroke"
-                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeWidth="0dp"
                     android:textColor="@color/map_filter_chip_text" />
 
                 <com.google.android.material.chip.Chip
@@ -167,10 +161,10 @@
                     android:textStyle="bold"
                     app:checkedIconVisible="false"
                     app:chipBackgroundColor="@color/map_filter_chip_background"
-                    app:chipCornerRadius="24dp"
+                    app:chipCornerRadius="18dp"
                     app:chipMinHeight="46dp"
                     app:chipStrokeColor="@color/map_filter_chip_stroke"
-                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeWidth="0dp"
                     android:textColor="@color/map_filter_chip_text" />
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
@@ -226,5 +220,134 @@
                 android:textSize="13sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
+
+    <LinearLayout
+        android:id="@+id/map_search_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg_primary"
+        android:clickable="true"
+        android:elevation="16dp"
+        android:focusable="true"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="20dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/map_search_icon_description"
+                android:src="@drawable/ic_map_search"
+                app:tint="@color/accent_teal" />
+
+            <TextView
+                android:id="@+id/tv_map_search_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:text="@string/map_search_landing_label"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btn_close_map_search"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/map_close_search"
+                android:padding="10dp"
+                android:src="@drawable/ic_map_close"
+                app:tint="@color/text_secondary" />
+        </LinearLayout>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="@color/surface_elevated"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="20dp"
+                android:paddingEnd="16dp">
+
+                <EditText
+                    android:id="@+id/et_map_search"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:hint="@string/map_search_hint"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:padding="0dp"
+                    android:singleLine="true"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
+                    android:textSize="15sp" />
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:contentDescription="@string/map_voice_search_description"
+                    android:importantForAccessibility="yes"
+                    android:src="@drawable/ic_map_microphone"
+                    app:tint="@color/text_secondary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/tv_map_search_results_heading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/map_search_recent_heading"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_map_search_results"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="16dp" />
+
+            <TextView
+                android:id="@+id/tv_map_search_empty"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_horizontal|top"
+                android:paddingTop="20dp"
+                android:text="@string/map_search_empty"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:visibility="gone" />
+        </FrameLayout>
+    </LinearLayout>
 
 </FrameLayout>
