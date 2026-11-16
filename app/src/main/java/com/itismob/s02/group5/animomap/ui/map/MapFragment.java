@@ -24,6 +24,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
@@ -40,6 +41,7 @@ import com.mapbox.maps.CameraOptions;
 import com.mapbox.maps.CoordinateBounds;
 import com.mapbox.maps.EdgeInsets;
 import com.mapbox.maps.MapView;
+import com.mapbox.maps.MapboxDelicateApi;
 import com.mapbox.maps.MapboxMap;
 import com.mapbox.maps.Style;
 import com.mapbox.maps.extension.style.layers.LayerUtils;
@@ -343,6 +345,7 @@ public class MapFragment extends Fragment {
                 .build());
     }
     /** Fits the whole demo route and both of its buildings on screen. */
+    @OptIn(markerClass = MapboxDelicateApi.class)
     private void focusOnRoute() {
         List<Point> points = new ArrayList<>();
         for (double[] p : CampusMapData.getDemoRoutePoints()) { points.add(Point.fromLngLat(p[1], p[0])); }
