@@ -14,9 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.Filter;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -30,6 +28,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.ChipGroup;
 import com.itismob.s02.group5.animomap.R;
@@ -73,6 +73,7 @@ public class MapFragment extends Fragment {
     private static final long CAMERA_MS = 600L;
     private static final double MASK_OPACITY = 0.8;
     private static final double MASK_FADE_METERS = 30.0;
+    private static final int MAX_RECENT_PLACES = 6;
 
     private View root, header, controls, card;
     private MapView mapView;
@@ -82,8 +83,14 @@ public class MapFragment extends Fragment {
     private final Map<String, MapPlace> markerPlaces = new HashMap<>();
     private Bitmap dotIcon, selectedDotIcon;
     private EdgeInsets padding = new EdgeInsets(0, 0, 0, 0);
-    private AutoCompleteTextView search;
-    private ImageButton clear;
+    private EditText search;
+    private ImageButton clear, closeSearchButton;
+    private LinearLayout searchPanel;
+    private TextView searchPrompt, searchHeading, searchEmpty;
+    private MapSearchAdapter searchAdapter;
+    private final List<MapPlace> recentPlaces = new ArrayList<>();
+    private boolean suppressSearchChange;
+    private OnBackPressedCallback searchBackCallback;
     private TextView title, subtitle, categoryText, notice;
     private MaterialButton directions;
     private ChipGroup filters;
@@ -107,7 +114,12 @@ public class MapFragment extends Fragment {
         card = view.findViewById(R.id.card_map_place);
         mapView = view.findViewById(R.id.mapbox_map);
         search = view.findViewById(R.id.et_map_search);
+        searchPrompt = view.findViewById(R.id.tv_map_search_prompt);
         clear = view.findViewById(R.id.btn_clear_map_search);
+        closeSearchButton = view.findViewById(R.id.btn_close_map_search);
+        searchPanel = view.findViewById(R.id.map_search_panel);
+        searchHeading = view.findViewById(R.id.tv_map_search_results_heading);
+        searchEmpty = view.findViewById(R.id.tv_map_search_empty);
         title = view.findViewById(R.id.tv_map_place_name);
         ViewCompat.setAccessibilityHeading(title, true);
         subtitle = view.findViewById(R.id.tv_map_place_subtitle);
@@ -124,9 +136,8 @@ public class MapFragment extends Fragment {
             cameraToRestore = state.getDoubleArray("map.camera");
         }
         setupMap();
-        setupSearch();
+        setupSearch(view);
         updatingUi = true;
-        search.setText(state == null ? "" : state.getString("map.query", ""), false);
         filters.check(filterId());
         updatingUi = false;
         filters.setOnCheckedStateChangeListener((group, ids) -> {
@@ -160,6 +171,7 @@ public class MapFragment extends Fragment {
             }
         };
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), backCallback);
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), searchBackCallback);
         layoutListener = () -> {
             if (!isAdded() || getView() != root) { return; }
             observedTree = root.getViewTreeObserver();
@@ -352,57 +364,94 @@ public class MapFragment extends Fragment {
 
     // ---- Search, selection, and the place card ----
 
-    private void setupSearch() {
-        PlaceSearchAdapter adapter = new PlaceSearchAdapter();
-        search.setAdapter(adapter);
-        search.setOnItemClickListener((parent, row, position, id) -> {
-            MapPlace place = adapter.getItem(position);
-            if (place != null) { select(place, true); }
-        });
-        search.setOnFocusChangeListener((v, focused) -> {
-            if (focused) { adapter.getFilter().filter(search.getText(), count -> {
-                if (search.hasFocus()) { search.showDropDown(); }
-            }); }
-        });
-        search.setOnClickListener(v -> {
-            if (search.getText().length() == 0) {
-                adapter.getFilter().filter("", count -> search.showDropDown());
-            }
-        });
+    private void setupSearch(View view) {
+        RecyclerView results = view.findViewById(R.id.rv_map_search_results);
+        searchAdapter = new MapSearchAdapter(place -> select(place, true));
+        results.setLayoutManager(new LinearLayoutManager(requireContext()));
+        results.setAdapter(searchAdapter);
+        seedRecentPlaces();
+        updateSearchResults("");
+        view.findViewById(R.id.map_search_card).setOnClickListener(v -> openSearch());
+        searchPrompt.setOnClickListener(v -> openSearch());
+        closeSearchButton.setOnClickListener(v -> closeSearch());
         search.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                clear.setVisibility(s.length() == 0 ? View.INVISIBLE : View.VISIBLE);
-                if (!updatingUi && selected != null && !selected.getName().equals(s.toString())) {
-                    selected = null;
-                    demo = false;
-                    focusRequested = false;
-                    render();
-                }
+                if (!suppressSearchChange) { updateSearchResults(s.toString().trim()); }
             }
             @Override public void afterTextChanged(Editable s) { }
         });
-        clear.setOnClickListener(button -> clearSelection());
         search.setOnEditorActionListener((textView, action, event) -> {
-            adapter.getFilter().filter(search.getText(), count -> search.showDropDown());
+            hideKeyboard();
             return true;
         });
+        clear.setOnClickListener(button -> clearSelection());
+        searchBackCallback = new OnBackPressedCallback(false) {
+            @Override public void handleOnBackPressed() { closeSearch(); }
+        };
+    }
+    private void seedRecentPlaces() {
+        recentPlaces.clear();
+        List<MapPlace> places = CampusMapData.getPlaces();
+        for (int i = 0; i < Math.min(3, places.size()); i++) { recentPlaces.add(places.get(i)); }
+    }
+    private void openSearch() {
+        searchPanel.setVisibility(View.VISIBLE);
+        searchBackCallback.setEnabled(true);
+        suppressSearchChange = true;
+        search.setText("");
+        suppressSearchChange = false;
+        updateSearchResults("");
+        search.requestFocus();
+        search.postDelayed(() -> {
+            if (!isAdded() || searchPanel.getVisibility() != View.VISIBLE) { return; }
+            InputMethodManager keyboard = (InputMethodManager) requireContext()
+                    .getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (keyboard != null) { keyboard.showSoftInput(search, InputMethodManager.SHOW_IMPLICIT); }
+        }, 160);
+    }
+    private void closeSearch() {
+        hideKeyboard();
+        searchPanel.setVisibility(View.GONE);
+        searchBackCallback.setEnabled(false);
+        suppressSearchChange = true;
+        search.setText("");
+        suppressSearchChange = false;
+    }
+    private void updateSearchResults(String query) {
+        boolean recents = query.isEmpty();
+        List<MapPlace> matches = new ArrayList<>();
+        if (recents) {
+            matches.addAll(recentPlaces);
+        } else {
+            for (MapPlace place : CampusMapData.getPlaces()) {
+                if (place.matches(query)) { matches.add(place); }
+            }
+        }
+        searchHeading.setText(recents ? R.string.map_search_recent_heading
+                : R.string.map_search_results_heading);
+        searchAdapter.setPlaces(matches, recents);
+        searchEmpty.setVisibility(matches.isEmpty() ? View.VISIBLE : View.GONE);
+    }
+    private void addRecentPlace(MapPlace place) {
+        recentPlaces.remove(place);
+        recentPlaces.add(0, place);
+        while (recentPlaces.size() > MAX_RECENT_PLACES) { recentPlaces.remove(recentPlaces.size() - 1); }
     }
     private void select(MapPlace place, boolean fromSearch) {
         selected = place;
         demo = false;
         updatingUi = true;
         if (fromSearch) { category = place.getCategory(); filters.check(filterId()); }
-        search.setText(place.getName(), false);
         updatingUi = false;
-        hideKeyboard();
+        addRecentPlace(place);
+        closeSearch();
         render();
         focusRequested = true;
         root.requestLayout();
         ViewCompat.setAccessibilityPaneTitle(card, title.getText());
     }
     private void hideKeyboard() {
-        search.dismissDropDown();
         InputMethodManager keyboard = (InputMethodManager) requireContext()
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
         if (keyboard != null) { keyboard.hideSoftInputFromWindow(search.getWindowToken(), 0); }
@@ -413,9 +462,6 @@ public class MapFragment extends Fragment {
         selected = null;
         demo = false;
         focusRequested = false;
-        updatingUi = true;
-        search.setText("", false);
-        updatingUi = false;
         hideKeyboard();
         render();
     }
@@ -426,7 +472,9 @@ public class MapFragment extends Fragment {
     }
     private void render() {
         renderMap();
-        clear.setVisibility(search.length() == 0 ? View.INVISIBLE : View.VISIBLE);
+        clear.setVisibility(selected == null ? View.GONE : View.VISIBLE);
+        searchPrompt.setText(selected == null ? getString(R.string.map_search_landing_label)
+                : selected.getName());
         card.setVisibility(selected == null ? View.GONE : View.VISIBLE);
         backCallback.setEnabled(selected != null);
         if (selected != null) {
@@ -462,7 +510,7 @@ public class MapFragment extends Fragment {
             headerLayout.setPadding(dp(16), dp(landscape ? 4 : 16),
                     dp(16), dp(landscape ? 4 : 16));
             LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(
-                    landscape ? 0 : ViewGroup.LayoutParams.MATCH_PARENT, dp(56), landscape ? .55f : 0);
+                    landscape ? 0 : ViewGroup.LayoutParams.MATCH_PARENT, dp(58), landscape ? .55f : 0);
             LinearLayout.LayoutParams filterParams = new LinearLayout.LayoutParams(
                     landscape ? 0 : ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT, landscape ? .45f : 0);
@@ -533,7 +581,6 @@ public class MapFragment extends Fragment {
         state.putString("map.category", category == null ? null : category.name());
         state.putString("map.selected", selected == null ? null : selected.getId());
         state.putBoolean("map.demo", demo);
-        if (search != null) { state.putString("map.query", search.getText().toString()); }
         if (mapboxMap != null) {
             com.mapbox.maps.CameraState camera = mapboxMap.getCameraState();
             state.putDoubleArray("map.camera", new double[] {camera.getCenter().latitude(),
@@ -554,52 +601,4 @@ public class MapFragment extends Fragment {
         super.onDestroyView();
     }
     private int dp(float value) { return Math.round(value * getResources().getDisplayMetrics().density); }
-
-
-    private final class PlaceSearchAdapter extends ArrayAdapter<MapPlace> {
-        private final List<MapPlace> results = new ArrayList<>(CampusMapData.getPlaces());
-        PlaceSearchAdapter() { super(requireContext(), 0); }
-        @Override public int getCount() { return Math.max(1, results.size()); }
-        @Nullable @Override public MapPlace getItem(int position) {
-            return position >= 0 && position < results.size() ? results.get(position) : null;
-        }
-        @Override public boolean isEnabled(int position) { return getItem(position) != null; }
-        @Override public boolean areAllItemsEnabled() { return false; }
-        private final Filter placeFilter = new Filter() {
-            @Override protected FilterResults performFiltering(CharSequence constraint) {
-                List<MapPlace> matches = new ArrayList<>();
-                for (MapPlace place : CampusMapData.getPlaces()) {
-                    if (place.matches(constraint == null ? "" : constraint.toString())) { matches.add(place); }
-                }
-                FilterResults filtered = new FilterResults();
-                filtered.values = matches;
-                // Keep a disabled empty-result row visible in AutoCompleteTextView.
-                filtered.count = Math.max(1, matches.size());
-                return filtered;
-            }
-            @Override @SuppressWarnings("unchecked")
-            protected void publishResults(CharSequence constraint, FilterResults filtered) {
-                results.clear();
-                results.addAll((List<MapPlace>) filtered.values);
-                notifyDataSetChanged();
-            }
-            @Override public CharSequence convertResultToString(Object result) {
-                return result instanceof MapPlace ? ((MapPlace) result).getName() : "";
-            }
-        };
-        @NonNull @Override public Filter getFilter() { return placeFilter; }
-        @NonNull @Override public View getView(int position, @Nullable View recycled,
-                @NonNull ViewGroup parent) {
-            View row = recycled == null ? LayoutInflater.from(requireContext()).inflate(
-                    R.layout.item_map_search_result, parent, false) : recycled;
-            TextView name = row.findViewById(R.id.tv_search_result_name);
-            TextView sub = row.findViewById(R.id.tv_search_result_subtitle);
-            MapPlace place = getItem(position);
-            name.setText(place == null ? getString(R.string.map_no_results) : place.getName());
-            sub.setText(place == null ? getString(R.string.map_try_search) : place.getSubtitle());
-            return row;
-        }
-        @Override public View getDropDownView(int position, @Nullable View recycled,
-                @NonNull ViewGroup parent) { return getView(position, recycled, parent); }
-    }
 }

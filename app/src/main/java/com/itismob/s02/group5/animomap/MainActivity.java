@@ -13,6 +13,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.itismob.s02.group5.animomap.ui.community.CommunityFragment;
 import com.itismob.s02.group5.animomap.ui.groups.GroupsFragment;
 import com.itismob.s02.group5.animomap.ui.map.MapFragment;
+import com.itismob.s02.group5.animomap.ui.profile.ProfileFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             } else if (itemId == R.id.navigation_groups) {
                 loadFragment(new GroupsFragment());
+                return true;
+            } else if (itemId == R.id.navigation_profile) {
+                loadFragment(new ProfileFragment());
                 return true;
             }
             return false;

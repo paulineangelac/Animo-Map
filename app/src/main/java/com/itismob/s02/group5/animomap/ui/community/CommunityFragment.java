@@ -118,7 +118,7 @@ public class CommunityFragment extends Fragment {
     private void updateCategoryAppearance(TextView category, boolean selected) {
         category.setSelected(selected);
         category.setTextColor(requireContext().getColor(
-                selected ? R.color.bg_primary : R.color.text_secondary));
+                selected ? R.color.accent_teal : R.color.text_secondary));
     }
 
     private void showMessage(int messageResourceId) {
