@@ -1,5 +1,6 @@
 package com.itismob.s02.group5.animomap.ui.map;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
@@ -33,6 +34,8 @@ public class MapSearchAdapter extends RecyclerView.Adapter<MapSearchAdapter.Plac
         this.listener = listener;
     }
 
+    // The list is short and replaced as a whole on every keystroke, so a full refresh is fine here.
+    @SuppressLint("NotifyDataSetChanged")
     public void setPlaces(List<MapPlace> newPlaces, boolean showingRecentPlaces) {
         places.clear();
         places.addAll(newPlaces);

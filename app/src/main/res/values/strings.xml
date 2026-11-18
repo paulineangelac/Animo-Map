@@ -57,7 +57,6 @@
     <string name="map_location_off_campus">You\'re not on campus. Choose where you are instead.</string>
     <string name="map_close_place">Close selected place</string>
     <string name="map_no_results">No matching places</string>
-    <string name="map_try_search">Try a building name or room number</string>
     <string name="map_preview_demo">Preview demo route</string>
     <string name="map_back_to_place">Back to place</string>
     <string name="map_unmapped">Directions are not mapped yet</string>

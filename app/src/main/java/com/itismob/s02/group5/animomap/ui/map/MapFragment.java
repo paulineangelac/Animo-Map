@@ -34,6 +34,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -630,9 +631,8 @@ public class MapFragment extends Fragment {
         search.requestFocus();
         search.postDelayed(() -> {
             if (!isAdded() || searchPanel.getVisibility() != View.VISIBLE) { return; }
-            InputMethodManager keyboard = (InputMethodManager) requireContext()
-                    .getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (keyboard != null) { keyboard.showSoftInput(search, InputMethodManager.SHOW_IMPLICIT); }
+            WindowCompat.getInsetsController(requireActivity().getWindow(), search)
+                    .show(WindowInsetsCompat.Type.ime());
         }, 160);
     }
     private void closeSearch() {
