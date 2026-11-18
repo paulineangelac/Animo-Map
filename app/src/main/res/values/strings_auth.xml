@@ -29,4 +29,7 @@
     <string name="hint_password">Enter your password</string>
     <string name="hint_new_password">At least 8 characters</string>
     <string name="hint_confirm_password">Type your password again</string>
+
+    <!-- Profile -->
+    <string name="profile_logout">Log out</string>
 </resources>
