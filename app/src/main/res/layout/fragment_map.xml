@@ -420,11 +420,26 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:scrollbars="none">
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/map_search_filter_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true"
+                app:singleSelection="true"
+                app:selectionRequired="true"
+                app:chipSpacingHorizontal="6dp" />
+        </HorizontalScrollView>
+
         <TextView
             android:id="@+id/tv_map_search_results_heading"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="12dp"
             android:layout_marginBottom="8dp"
             android:text="@string/map_search_recent_heading"
             android:textColor="@color/text_primary"

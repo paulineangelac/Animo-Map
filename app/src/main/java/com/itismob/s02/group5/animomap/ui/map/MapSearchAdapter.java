@@ -1,5 +1,7 @@
 package com.itismob.s02.group5.animomap.ui.map;
 
+import android.content.Context;
+import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +9,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.widget.ImageViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.itismob.s02.group5.animomap.R;
@@ -48,12 +52,23 @@ public class MapSearchAdapter extends RecyclerView.Adapter<MapSearchAdapter.Plac
     public void onBindViewHolder(@NonNull PlaceViewHolder holder, int position) {
         MapPlace place = places.get(position);
         holder.name.setText(place.getName());
-        holder.subtitle.setText(place.getLocationLine());
-        holder.icon.setImageResource(showingRecentPlaces
-                ? R.drawable.ic_map_history : R.drawable.ic_map_search);
-        holder.icon.setContentDescription(holder.itemView.getContext().getString(
-                showingRecentPlaces ? R.string.map_recent_place_description
-                        : R.string.map_search_icon_description));
+        Context context = holder.itemView.getContext();
+        String categoryName = context.getString(MapPlace.categoryLabelRes(place.getCategory()));
+        String location = place.getLocationLine();
+        // "Restroom · Henry Sy Sr. Hall · Floor 3", or just "Building" when there is nothing more to say.
+        holder.subtitle.setText(location.equals(categoryName) ? categoryName
+                : categoryName + " · " + location);
+        if (showingRecentPlaces) {
+            holder.icon.setImageResource(R.drawable.ic_map_history);
+            ImageViewCompat.setImageTintList(holder.icon, null);
+            holder.icon.setContentDescription(context.getString(R.string.map_recent_place_description));
+        } else {
+            // Search results show the category symbol so places can be told apart at a glance.
+            holder.icon.setImageResource(MapPlace.glyphRes(place.getCategory()));
+            ImageViewCompat.setImageTintList(holder.icon, ColorStateList.valueOf(
+                    ContextCompat.getColor(context, R.color.accent_teal)));
+            holder.icon.setContentDescription(categoryName);
+        }
         holder.itemView.setOnClickListener(view -> listener.onPlaceClick(place));
     }
 

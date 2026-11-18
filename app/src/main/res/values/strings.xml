@@ -37,6 +37,7 @@
     <string name="map_search_recent_heading">Recently searched</string>
     <string name="map_search_results_heading">Search results</string>
     <string name="map_search_empty">No matching places found.</string>
+    <string name="map_search_no_recent">No recent places yet. Try a building name or room number.</string>
     <string name="map_close_search">Close search</string>
     <string name="map_voice_search_description">Voice search</string>
     <string name="map_recent_place_description">Recently searched</string>

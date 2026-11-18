@@ -53,4 +53,23 @@ public class CampusMapDataTest {
         UserLocation.clear();
         assertNull(UserLocation.getManualPlaceId());
     }
+    @Test public void selectedPlaceWithoutMarkerIsStillShown() {
+        MapPlace restroom = new MapPlace("wc1", "Restroom (Henry Sy 3F)", "Restroom", "Restroom",
+                MapPlace.Category.RESTROOM, 14.5650, 120.9931, false, "Henry Sy Sr. Hall", 3, "", "");
+        assertFalse(CampusMapData.isShownOnMap(restroom, null, null, false));
+        assertTrue(CampusMapData.isShownOnMap(restroom, restroom, null, false));
+        // Even with a filter for another category, the selected place stays visible.
+        assertTrue(CampusMapData.isShownOnMap(restroom, restroom, MapPlace.Category.FOOD, false));
+    }
+    @Test public void categoryFilterAndDemoModeControlWhichMarkersShow() {
+        MapPlace lasalle = CampusMapData.findPlace(CampusMapData.LASALLE);
+        MapPlace henry = CampusMapData.findPlace(CampusMapData.HENRY_SY);
+        assertTrue(CampusMapData.isShownOnMap(henry, null, null, false));
+        assertTrue(CampusMapData.isShownOnMap(henry, null, MapPlace.Category.BUILDING, false));
+        assertFalse(CampusMapData.isShownOnMap(henry, null, MapPlace.Category.FOOD, false));
+        // Demo route: only the selected building and the starting building.
+        assertTrue(CampusMapData.isShownOnMap(lasalle, henry, null, true));
+        assertTrue(CampusMapData.isShownOnMap(henry, henry, null, true));
+        assertFalse(CampusMapData.isShownOnMap(CampusMapData.findPlace("gokongwei"), henry, null, true));
+    }
 }

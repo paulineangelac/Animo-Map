@@ -39,6 +39,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.itismob.s02.group5.animomap.R;
@@ -78,6 +79,7 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListen
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +90,8 @@ public class MapFragment extends Fragment {
     private static final long CAMERA_MS = 600L;
     private static final double MASK_OPACITY = 0.8;
     private static final double MASK_FADE_METERS = 30.0;
-    private static final int MAX_RECENT_PLACES = 6;
+    private static final String PREFS = "animomap_map";
+    private static final String PREF_RECENT = "recent_places";
     // Buildings are numerous, so their badges are smaller than the other categories'.
     private static final int BUILDING_MARKER_DP = 24, BUILDING_SELECTED_DP = 36;
     private static final int PLACE_MARKER_DP = 32, PLACE_SELECTED_DP = 42;
@@ -106,12 +109,12 @@ public class MapFragment extends Fragment {
     private LinearLayout searchPanel;
     private TextView searchPrompt, searchHeading, searchEmpty;
     private MapSearchAdapter searchAdapter;
-    private final List<MapPlace> recentPlaces = new ArrayList<>();
+    private RecentPlaces recentPlaces = new RecentPlaces();
     private boolean suppressSearchChange;
     private OnBackPressedCallback searchBackCallback;
     private TextView title, subtitle, categoryText, notice;
     private MaterialButton directions;
-    private ChipGroup filters;
+    private ChipGroup filters, searchFilters;
     private MapPlace selected;
     private MapPlace.Category category;
     private boolean demo, updatingUi, focusRequested;
@@ -184,6 +187,7 @@ public class MapFragment extends Fragment {
                     : id == R.id.chip_restrooms ? MapPlace.Category.RESTROOM
                     : id == R.id.chip_study ? MapPlace.Category.STUDY
                     : id == R.id.chip_hangout ? MapPlace.Category.HANGOUT : null;
+            syncSearchChips();
             clearSelection();
             showOverview();
         });
@@ -345,7 +349,7 @@ public class MapFragment extends Fragment {
                 isSelected ? R.color.highlight_selected : R.color.accent_teal);
         paint.setColor(accent);
         canvas.drawCircle(center, center, center - stroke / 2f, paint);
-        Drawable glyph = ContextCompat.getDrawable(requireContext(), markerGlyph(value));
+        Drawable glyph = ContextCompat.getDrawable(requireContext(), MapPlace.glyphRes(value));
         if (glyph != null) {
             glyph = DrawableCompat.wrap(glyph.mutate());
             DrawableCompat.setTint(glyph, accent);
@@ -360,15 +364,6 @@ public class MapFragment extends Fragment {
         boolean building = value == MapPlace.Category.BUILDING;
         return isSelected ? (building ? BUILDING_SELECTED_DP : PLACE_SELECTED_DP)
                 : (building ? BUILDING_MARKER_DP : PLACE_MARKER_DP);
-    }
-    private int markerGlyph(MapPlace.Category value) {
-        switch (value) {
-            case FOOD: return R.drawable.ic_marker_food;
-            case RESTROOM: return R.drawable.ic_marker_restroom;
-            case STUDY: return R.drawable.ic_marker_study;
-            case HANGOUT: return R.drawable.ic_marker_hangout;
-            default: return R.drawable.ic_marker_building;
-        }
     }
 
     private void renderMap() {
@@ -385,10 +380,7 @@ public class MapFragment extends Fragment {
         }
         List<MapPlace> shown = new ArrayList<>();
         for (MapPlace place : CampusMapData.getPlaces()) {
-            if (!place.hasMapMarker()) { continue; }
-            boolean visible = demo ? place == selected || CampusMapData.LASALLE.equals(place.getId())
-                    : place == selected || category == null || category == place.getCategory();
-            if (visible) { shown.add(place); }
+            if (CampusMapData.isShownOnMap(place, selected, category, demo)) { shown.add(place); }
         }
         int labelColor = ContextCompat.getColor(requireContext(), R.color.text_primary);
         int haloColor = ContextCompat.getColor(requireContext(), R.color.bg_primary);
@@ -558,11 +550,12 @@ public class MapFragment extends Fragment {
     // ---- Search, selection, and the place card ----
 
     private void setupSearch(View view) {
+        setupSearchFilters(view);
         RecyclerView results = view.findViewById(R.id.rv_map_search_results);
         searchAdapter = new MapSearchAdapter(place -> select(place, true));
         results.setLayoutManager(new LinearLayoutManager(requireContext()));
         results.setAdapter(searchAdapter);
-        seedRecentPlaces();
+        loadRecentPlaces();
         updateSearchResults("");
         view.findViewById(R.id.map_search_card).setOnClickListener(v -> openSearch());
         searchPrompt.setOnClickListener(v -> openSearch());
@@ -583,12 +576,51 @@ public class MapFragment extends Fragment {
             @Override public void handleOnBackPressed() { closeSearch(); }
         };
     }
-    private void seedRecentPlaces() {
-        recentPlaces.clear();
-        List<MapPlace> places = CampusMapData.getPlaces();
-        for (int i = 0; i < Math.min(3, places.size()); i++) { recentPlaces.add(places.get(i)); }
+    /** Category chips inside the search panel. They share the map's filter, so both stay in sync. */
+    private void setupSearchFilters(View view) {
+        searchFilters = view.findViewById(R.id.map_search_filter_group);
+        addSearchChip(R.string.map_filter_all, null);
+        addSearchChip(R.string.map_filter_buildings, MapPlace.Category.BUILDING);
+        addSearchChip(R.string.map_filter_food, MapPlace.Category.FOOD);
+        addSearchChip(R.string.map_filter_restrooms, MapPlace.Category.RESTROOM);
+        addSearchChip(R.string.map_filter_study, MapPlace.Category.STUDY);
+        addSearchChip(R.string.map_filter_hangout, MapPlace.Category.HANGOUT);
+        syncSearchChips();
+        searchFilters.setOnCheckedStateChangeListener((group, ids) -> {
+            if (updatingUi || ids.isEmpty()) { return; }
+            Chip chip = group.findViewById(ids.get(0));
+            category = (MapPlace.Category) chip.getTag();
+            updatingUi = true;
+            filters.check(filterId());
+            updatingUi = false;
+            updateSearchResults(search.getText().toString().trim());
+            renderMap();
+        });
+    }
+    private void addSearchChip(int labelRes, MapPlace.Category chipCategory) {
+        Chip chip = (Chip) getLayoutInflater().inflate(R.layout.chip_map_filter, searchFilters, false);
+        chip.setId(View.generateViewId());
+        chip.setText(labelRes);
+        chip.setTag(chipCategory);
+        searchFilters.addView(chip);
+    }
+    /** Checks the search chip that matches the current map filter. */
+    private void syncSearchChips() {
+        boolean wasUpdating = updatingUi;
+        updatingUi = true;
+        for (int i = 0; i < searchFilters.getChildCount(); i++) {
+            Chip chip = (Chip) searchFilters.getChildAt(i);
+            if (chip.getTag() == category) { searchFilters.check(chip.getId()); break; }
+        }
+        updatingUi = wasUpdating;
+    }
+    /** Loads the saved recent places. Starts empty on a fresh install. */
+    private void loadRecentPlaces() {
+        recentPlaces = RecentPlaces.decode(requireContext()
+                .getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(PREF_RECENT, ""));
     }
     private void openSearch() {
+        syncSearchChips();
         searchPanel.setVisibility(View.VISIBLE);
         searchBackCallback.setEnabled(true);
         suppressSearchChange = true;
@@ -615,21 +647,31 @@ public class MapFragment extends Fragment {
         boolean recents = query.isEmpty();
         List<MapPlace> matches = new ArrayList<>();
         if (recents) {
-            matches.addAll(recentPlaces);
+            matches.addAll(recentPlaces.getPlaces());
         } else {
             for (MapPlace place : CampusMapData.getPlaces()) {
                 if (place.matches(query)) { matches.add(place); }
             }
         }
+        if (category != null) {
+            for (int i = matches.size() - 1; i >= 0; i--) {
+                if (matches.get(i).getCategory() != category) { matches.remove(i); }
+            }
+        }
+        if (!recents) {
+            // Best matches first; places that rank the same keep their list order.
+            Collections.sort(matches, (a, b) -> a.searchRank(query) - b.searchRank(query));
+        }
         searchHeading.setText(recents ? R.string.map_search_recent_heading
                 : R.string.map_search_results_heading);
         searchAdapter.setPlaces(matches, recents);
+        searchEmpty.setText(recents ? R.string.map_search_no_recent : R.string.map_search_empty);
         searchEmpty.setVisibility(matches.isEmpty() ? View.VISIBLE : View.GONE);
     }
     private void addRecentPlace(MapPlace place) {
-        recentPlaces.remove(place);
-        recentPlaces.add(0, place);
-        while (recentPlaces.size() > MAX_RECENT_PLACES) { recentPlaces.remove(recentPlaces.size() - 1); }
+        recentPlaces.add(place);
+        requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .putString(PREF_RECENT, recentPlaces.encode()).apply();
     }
     private void select(MapPlace place, boolean fromSearch) {
         selected = place;
@@ -658,15 +700,6 @@ public class MapFragment extends Fragment {
         hideKeyboard();
         render();
     }
-    private int categoryLabel(MapPlace.Category value) {
-        switch (value) {
-            case FOOD: return R.string.place_type_food;
-            case RESTROOM: return R.string.place_type_restroom;
-            case STUDY: return R.string.place_type_study;
-            case HANGOUT: return R.string.place_type_hangout;
-            default: return R.string.place_type_building;
-        }
-    }
     private int filterId() {
         return category == MapPlace.Category.BUILDING ? R.id.chip_buildings
                 : category == MapPlace.Category.FOOD ? R.id.chip_food
@@ -683,7 +716,7 @@ public class MapFragment extends Fragment {
         backCallback.setEnabled(selected != null);
         if (selected != null) {
             categoryText.setText(demo ? R.string.map_demo_notice
-                    : categoryLabel(selected.getCategory()));
+                    : MapPlace.categoryLabelRes(selected.getCategory()));
             title.setText(demo ? getString(R.string.map_demo_title) : selected.getName());
             String locationLine = selected.getLocationLine();
             subtitle.setText(demo ? getString(R.string.map_demo_subtitle) : locationLine);

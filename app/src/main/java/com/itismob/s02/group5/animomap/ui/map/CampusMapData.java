@@ -74,6 +74,19 @@ public final class CampusMapData {
         for (int i = 0; i < copy.length; i++) { copy[i] = CAMPUS_OUTLINE[i].clone(); }
         return copy;
     }
+    /**
+     * Whether a place gets a marker on the map right now. The selected place is always shown, even
+     * if it normally has no marker (a room or an indoor restroom), so the user sees where it is.
+     * Other places need a marker and must pass the category filter. In demo-route mode only the
+     * selected place and the route's starting building are shown.
+     */
+    public static boolean isShownOnMap(MapPlace place, MapPlace selected,
+                                       MapPlace.Category filter, boolean demo) {
+        if (place == selected && place != null) { return true; }
+        if (!place.hasMapMarker()) { return false; }
+        if (demo) { return LASALLE.equals(place.getId()); }
+        return filter == null || filter == place.getCategory();
+    }
     public static MapPlace findPlace(String id) {
         for (MapPlace place : PLACES) {
             if (place.getId().equals(id)) { return place; }
