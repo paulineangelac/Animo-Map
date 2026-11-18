@@ -23,6 +23,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Space;
 import android.widget.Toast;
 import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
@@ -46,12 +47,15 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.itismob.s02.group5.animomap.R;
 import com.mapbox.bindgen.DataRef;
 import com.mapbox.bindgen.Value;
+import com.mapbox.common.MapboxOptions;
 import com.mapbox.geojson.Point;
 import com.mapbox.geojson.Polygon;
 import com.mapbox.maps.CameraBoundsOptions;
 import com.mapbox.maps.CameraOptions;
+import com.mapbox.maps.CameraState;
 import com.mapbox.maps.CoordinateBounds;
 import com.mapbox.maps.EdgeInsets;
+import com.mapbox.maps.Image;
 import com.mapbox.maps.MapView;
 import com.mapbox.maps.MapboxDelicateApi;
 import com.mapbox.maps.MapboxMap;
@@ -132,6 +136,7 @@ public class MapFragment extends Fragment {
                     showLocationPicker();
                 }
             });
+
     private double[] cameraToRestore;
     private OnBackPressedCallback backCallback;
     private ViewTreeObserver.OnGlobalLayoutListener layoutListener;
@@ -139,6 +144,10 @@ public class MapFragment extends Fragment {
 
     @Nullable @Override public View onCreateView(@NonNull LayoutInflater inflater,
             @Nullable ViewGroup container, @Nullable Bundle state) {
+        String token = getString(R.string.mapbox_access_token).trim();
+        if (token.isEmpty()) {
+            MapboxOptions.setAccessToken("pk.placeholder");
+        }
         return inflater.inflate(R.layout.fragment_map, container, false);
     }
     @Override public void onViewCreated(@NonNull View view, @Nullable Bundle state) {
@@ -236,7 +245,8 @@ public class MapFragment extends Fragment {
     // ---- Mapbox ----
 
     private void setupMap() {
-        if (getString(R.string.mapbox_access_token).trim().isEmpty()) {
+        String token = getString(R.string.mapbox_access_token).trim();
+        if (token.isEmpty() || token.equals("pk.placeholder")) {
             root.findViewById(R.id.tv_map_token_missing).setVisibility(View.VISIBLE);
         }
         mapboxMap = mapView.getMapboxMap();
@@ -319,7 +329,7 @@ public class MapFragment extends Fragment {
         fade.copyPixelsToBuffer(pixels);
         pixels.rewind();
         style.updateStyleImageSourceImage("campus-fade-source",
-                new com.mapbox.maps.Image(fade.getWidth(), fade.getHeight(), new DataRef(pixels)));
+                new Image(fade.getWidth(), fade.getHeight(), new DataRef(pixels)));
         RasterLayer layer = new RasterLayer("campus-fade-layer", "campus-fade-source");
         layer.rasterFadeDuration(0.0);
         layer.bindTo(style);
@@ -761,7 +771,7 @@ public class MapFragment extends Fragment {
         boolean spacesChanged = false;
         for (int i = 0; i < controlLayout.getChildCount(); i++) {
             View child = controlLayout.getChildAt(i);
-            if (child instanceof android.widget.Space) {
+            if (child instanceof Space) {
                 int visibility = compact ? View.GONE : View.VISIBLE;
                 if (child.getVisibility() != visibility) {
                     child.setVisibility(visibility);
@@ -819,7 +829,7 @@ public class MapFragment extends Fragment {
         state.putBoolean("map.demo", demo);
         state.putBoolean("map.gps", gpsActive);
         if (mapboxMap != null) {
-            com.mapbox.maps.CameraState camera = mapboxMap.getCameraState();
+            CameraState camera = mapboxMap.getCameraState();
             state.putDoubleArray("map.camera", new double[] {camera.getCenter().latitude(),
                     camera.getCenter().longitude(), camera.getZoom(), camera.getBearing(),
                     camera.getPitch()});
