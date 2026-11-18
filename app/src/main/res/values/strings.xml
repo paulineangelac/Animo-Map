@@ -8,7 +8,6 @@
     <string name="nav_profile">Profile</string>
 
     <!-- Destination Screen Titles -->
-    <string name="title_map">Map</string>
     <string name="title_community">Community</string>
     <string name="title_groups">Groups</string>
     <string name="title_profile">Profile</string>
@@ -30,7 +29,6 @@
     <string name="profile_avatar_description">Profile avatar for Alex Santos</string>
 
     <!-- Placeholders -->
-    <string name="placeholder_map">Map screen placeholder. Interactive DLSU campus map coming soon.</string>
     <string name="placeholder_groups">Groups screen placeholder. Private groups and presence sharing coming soon.</string>
 
     <!-- Map search, filters, and illustrative prototype data -->
@@ -39,34 +37,43 @@
     <string name="map_search_recent_heading">Recently searched</string>
     <string name="map_search_results_heading">Search results</string>
     <string name="map_search_empty">No matching places found.</string>
+    <string name="map_search_no_recent">No recent places yet. Try a building name or room number.</string>
     <string name="map_close_search">Close search</string>
     <string name="map_voice_search_description">Voice search</string>
     <string name="map_recent_place_description">Recently searched</string>
     <string name="map_search_icon_description">Search</string>
     <string name="map_clear_search">Clear search</string>
-    <string name="map_filter_route">Route</string>
+    <string name="map_filter_all">All</string>
+    <string name="map_canvas_description">Campus map. Drag to explore, pinch to zoom, or tap a marker to select a place.</string>
+    <string name="map_token_missing">Mapbox access token missing. Add MAPBOX_ACCESS_TOKEN=pk.… to local.properties and rebuild.</string>
+    <string name="map_zoom_in">Zoom in</string>
+    <string name="map_zoom_out">Zoom out</string>
+    <string name="map_show_campus">Show campus</string>
+    <string name="map_my_location">My location. Long press to choose a building instead.</string>
+    <string name="map_location_picker_title">Where are you?</string>
+    <string name="map_location_clear">Clear location</string>
+    <string name="map_location_set">Location set to %1$s</string>
+    <string name="map_location_denied">Location permission was not granted. Choose where you are instead.</string>
+    <string name="map_location_off_campus">You\'re not on campus. Choose where you are instead.</string>
+    <string name="map_close_place">Close selected place</string>
+    <string name="map_no_results">No matching places</string>
+    <string name="map_preview_demo">Preview demo route</string>
+    <string name="map_back_to_place">Back to place</string>
+    <string name="map_unmapped">Directions are not mapped yet</string>
+    <string name="map_demo_notice">Demo route · not verified directions</string>
+    <string name="map_demo_title">St. La Salle Hall → Henry Sy Sr. Hall</string>
+    <string name="map_demo_subtitle">Fixed example on the campus map</string>
     <string name="map_filter_buildings">Buildings</string>
     <string name="map_filter_study">Study</string>
     <string name="map_filter_food">Food</string>
-    <string name="map_route_preview_title">Route preview</string>
-    <string name="map_route_summary">%1$s → %2$s</string>
-    <string name="map_route_illustrative_notice">Illustrative demo route · not verified directions</string>
-    <string name="map_route_origin">St. La Salle Hall</string>
-    <string name="map_route_demo_start">Demo starting point</string>
+    <string name="map_filter_restrooms">Restrooms</string>
+    <string name="map_filter_hangout">Hangout</string>
 
     <string name="place_type_building">Building</string>
-    <string name="place_st_lasalle_hall">St. La Salle Hall</string>
-    <string name="place_henry_sy_hall">Henry Sy Sr. Hall</string>
-    <string name="place_velasco_hall">Velasco Hall</string>
-    <string name="place_yuchengco_hall">Yuchengco Hall</string>
-    <string name="place_st_miguel_hall">St. Miguel Hall</string>
-    <string name="place_gokongwei_hall">Gokongwei Hall</string>
-    <string name="place_g303">G303</string>
-    <string name="place_g303_subtitle">Gokongwei Hall · Level 3</string>
-    <string name="place_study_demo">Study area (demo)</string>
-    <string name="place_study_demo_subtitle">Sample study location</string>
-    <string name="place_food_demo">Food place (demo)</string>
-    <string name="place_food_demo_subtitle">Sample food location</string>
+    <string name="place_type_food">Food</string>
+    <string name="place_type_restroom">Restroom</string>
+    <string name="place_type_study">Study area</string>
+    <string name="place_type_hangout">Waiting / hangout area</string>
 
     <!-- Community feed -->
     <string name="community_category_recommended">Recommended</string>

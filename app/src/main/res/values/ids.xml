@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="map_search_card" type="id" />
+    <item name="map_filter_scroll" type="id" />
+    <item name="map_place_scroll" type="id" />
+</resources>
