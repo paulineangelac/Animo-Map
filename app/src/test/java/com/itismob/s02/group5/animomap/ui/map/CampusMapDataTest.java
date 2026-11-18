@@ -18,7 +18,7 @@ public class CampusMapDataTest {
                     onCampus(place.getLatitude(), place.getLongitude()));
             assertFalse(place.getName().isEmpty());
         }
-        assertEquals(2, ids.size());
+        assertEquals(13, ids.size());
         assertTrue(onCampus(CampusMapData.CENTER_LAT, CampusMapData.CENTER_LNG));
     }
     @Test public void namesAndAliasesAreSearchable() {
@@ -42,5 +42,15 @@ public class CampusMapDataTest {
         double original = points[0][0];
         points[0][0] = -1;
         assertEquals(original, CampusMapData.getDemoRoutePoints()[0][0], 1e-9);
+    }
+    @Test public void isOnCampusMatchesBoundsAndManualLocationIsRemembered() {
+        assertTrue(CampusMapData.isOnCampus(CampusMapData.CENTER_LAT, CampusMapData.CENTER_LNG));
+        assertFalse(CampusMapData.isOnCampus(14.6, 121.0));
+        UserLocation.clear();
+        assertNull(UserLocation.getManualPlace());
+        UserLocation.setManualPlaceId(CampusMapData.HENRY_SY);
+        assertEquals(CampusMapData.HENRY_SY, UserLocation.getManualPlace().getId());
+        UserLocation.clear();
+        assertNull(UserLocation.getManualPlaceId());
     }
 }

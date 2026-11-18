@@ -1,10 +1,14 @@
 package com.itismob.s02.group5.animomap.ui.map;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -19,12 +23,16 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Toast;
 import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
@@ -32,8 +40,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.itismob.s02.group5.animomap.R;
 import com.mapbox.bindgen.DataRef;
+import com.mapbox.bindgen.Value;
 import com.mapbox.geojson.Point;
 import com.mapbox.geojson.Polygon;
 import com.mapbox.maps.CameraBoundsOptions;
@@ -44,6 +54,7 @@ import com.mapbox.maps.MapView;
 import com.mapbox.maps.MapboxDelicateApi;
 import com.mapbox.maps.MapboxMap;
 import com.mapbox.maps.Style;
+import com.mapbox.maps.StyleObjectInfo;
 import com.mapbox.maps.extension.style.layers.generated.FillLayer;
 import com.mapbox.maps.extension.style.layers.generated.RasterLayer;
 import com.mapbox.maps.extension.style.layers.properties.generated.TextAnchor;
@@ -57,9 +68,13 @@ import com.mapbox.maps.plugin.annotation.generated.PointAnnotation;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManagerKt;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions;
+import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor;
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager;
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManagerKt;
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions;
+import com.mapbox.maps.plugin.locationcomponent.LocationComponentPlugin;
+import com.mapbox.maps.plugin.locationcomponent.LocationComponentUtils;
+import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,6 +89,9 @@ public class MapFragment extends Fragment {
     private static final double MASK_OPACITY = 0.8;
     private static final double MASK_FADE_METERS = 30.0;
     private static final int MAX_RECENT_PLACES = 6;
+    // Buildings are numerous, so their badges are smaller than the other categories'.
+    private static final int BUILDING_MARKER_DP = 24, BUILDING_SELECTED_DP = 36;
+    private static final int PLACE_MARKER_DP = 32, PLACE_SELECTED_DP = 42;
 
     private View root, header, controls, card;
     private MapView mapView;
@@ -81,7 +99,7 @@ public class MapFragment extends Fragment {
     private PointAnnotationManager markers;
     private PolylineAnnotationManager routeLine;
     private final Map<String, MapPlace> markerPlaces = new HashMap<>();
-    private Bitmap dotIcon, selectedDotIcon;
+    private final Map<String, Bitmap> markerIcons = new HashMap<>();
     private EdgeInsets padding = new EdgeInsets(0, 0, 0, 0);
     private EditText search;
     private ImageButton clear, closeSearchButton;
@@ -97,6 +115,19 @@ public class MapFragment extends Fragment {
     private MapPlace selected;
     private MapPlace.Category category;
     private boolean demo, updatingUi, focusRequested;
+    private boolean gpsActive, centerOnNextFix;
+    private Bitmap userPinIcon;
+    private final OnIndicatorPositionChangedListener positionListener = this::onGpsPosition;
+    private final ActivityResultLauncher<String[]> locationPermission = registerForActivityResult(
+            new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                if (!isAdded() || getView() == null) { return; }
+                if (hasLocationPermission()) {
+                    startGps(true);
+                } else {
+                    Toast.makeText(requireContext(), R.string.map_location_denied, Toast.LENGTH_LONG).show();
+                    showLocationPicker();
+                }
+            });
     private double[] cameraToRestore;
     private OnBackPressedCallback backCallback;
     private ViewTreeObserver.OnGlobalLayoutListener layoutListener;
@@ -134,8 +165,13 @@ public class MapFragment extends Fragment {
             demo = state.getBoolean("map.demo") && selected != null
                     && CampusMapData.hasDemoRoute(selected.getId());
             cameraToRestore = state.getDoubleArray("map.camera");
+            gpsActive = state.getBoolean("map.gps");
         }
         setupMap();
+        // After a rotation, turn the location marker back on if permission is still granted.
+        boolean resumeGps = gpsActive && hasLocationPermission();
+        gpsActive = false;
+        if (resumeGps) { startGps(false); }
         setupSearch(view);
         updatingUi = true;
         filters.check(filterId());
@@ -144,14 +180,19 @@ public class MapFragment extends Fragment {
             if (updatingUi || ids.isEmpty()) { return; }
             int id = ids.get(0);
             category = id == R.id.chip_buildings ? MapPlace.Category.BUILDING
+                    : id == R.id.chip_food ? MapPlace.Category.FOOD
+                    : id == R.id.chip_restrooms ? MapPlace.Category.RESTROOM
                     : id == R.id.chip_study ? MapPlace.Category.STUDY
-                    : id == R.id.chip_food ? MapPlace.Category.FOOD : null;
+                    : id == R.id.chip_hangout ? MapPlace.Category.HANGOUT : null;
             clearSelection();
             showOverview();
         });
         view.findViewById(R.id.btn_map_zoom_in).setOnClickListener(button -> zoomBy(1));
         view.findViewById(R.id.btn_map_zoom_out).setOnClickListener(button -> zoomBy(-1));
         view.findViewById(R.id.btn_map_overview).setOnClickListener(button -> showOverview());
+        View myLocation = view.findViewById(R.id.btn_map_my_location);
+        myLocation.setOnClickListener(button -> onMyLocationClicked());
+        myLocation.setOnLongClickListener(button -> { showLocationPicker(); return true; });
         view.findViewById(R.id.btn_close_map_place).setOnClickListener(button -> clearSelection());
         directions.setOnClickListener(button -> {
             demo = !demo;
@@ -211,10 +252,9 @@ public class MapFragment extends Fragment {
         } else {
             mapboxMap.setCamera(overviewCamera());
         }
-        dotIcon = createDot(false);
-        selectedDotIcon = createDot(true);
         // The dark style matches the app's dark design system.
         mapboxMap.loadStyle(Style.DARK, style -> {
+            hideBasemapPlaceNames(style);
             addOutsideCampusMask(style);
             AnnotationConfig noConfig = null;
             markers = PointAnnotationManagerKt.createPointAnnotationManager(
@@ -230,6 +270,19 @@ public class MapFragment extends Fragment {
             });
             renderMap();
         });
+    }
+    /**
+     * The app draws its own markers, so hide the basemap's building, shop and landmark names
+     * and keep only street names. Layers are matched by id: every "...label" layer is hidden
+     * except the "road" ones.
+     */
+    private void hideBasemapPlaceNames(Style style) {
+        for (StyleObjectInfo layer : style.getStyleLayers()) {
+            String id = layer.getId();
+            if (id.contains("label") && !id.startsWith("road")) {
+                style.setStyleLayerProperty(id, "visibility", Value.valueOf("none"));
+            }
+        }
     }
     private void addOutsideCampusMask(Style style) {
         int color = ContextCompat.getColor(requireContext(), R.color.bg_primary);
@@ -273,17 +326,49 @@ public class MapFragment extends Fragment {
                 .build();
     }
 
-    private Bitmap createDot(boolean isSelected) {
-        int size = dp(isSelected ? 36 : 28);
+    /** Round badge with a symbol per category, so places can be told apart without relying on colour. */
+    private Bitmap markerIcon(MapPlace.Category value, boolean isSelected) {
+        String key = value.name() + isSelected;
+        Bitmap cached = markerIcons.get(key);
+        if (cached != null) { return cached; }
+        int size = dp(markerSizeDp(value, isSelected));
+        float stroke = dp(isSelected ? 2.5f : (value == MapPlace.Category.BUILDING ? 1.5f : 2));
         Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        float center = size / 2f;
         paint.setColor(ContextCompat.getColor(requireContext(), R.color.surface_card));
-        canvas.drawCircle(size / 2f, size / 2f, dp(isSelected ? 10 : 6), paint);
-        paint.setColor(ContextCompat.getColor(requireContext(),
-                isSelected ? R.color.highlight_selected : R.color.accent_teal));
-        canvas.drawCircle(size / 2f, size / 2f, dp(isSelected ? 6 : 3.5f), paint);
+        canvas.drawCircle(center, center, center, paint);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(stroke);
+        int accent = ContextCompat.getColor(requireContext(),
+                isSelected ? R.color.highlight_selected : R.color.accent_teal);
+        paint.setColor(accent);
+        canvas.drawCircle(center, center, center - stroke / 2f, paint);
+        Drawable glyph = ContextCompat.getDrawable(requireContext(), markerGlyph(value));
+        if (glyph != null) {
+            glyph = DrawableCompat.wrap(glyph.mutate());
+            DrawableCompat.setTint(glyph, accent);
+            int inset = Math.round(size * 0.26f);
+            glyph.setBounds(inset, inset, size - inset, size - inset);
+            glyph.draw(canvas);
+        }
+        markerIcons.put(key, bitmap);
         return bitmap;
+    }
+    private int markerSizeDp(MapPlace.Category value, boolean isSelected) {
+        boolean building = value == MapPlace.Category.BUILDING;
+        return isSelected ? (building ? BUILDING_SELECTED_DP : PLACE_SELECTED_DP)
+                : (building ? BUILDING_MARKER_DP : PLACE_MARKER_DP);
+    }
+    private int markerGlyph(MapPlace.Category value) {
+        switch (value) {
+            case FOOD: return R.drawable.ic_marker_food;
+            case RESTROOM: return R.drawable.ic_marker_restroom;
+            case STUDY: return R.drawable.ic_marker_study;
+            case HANGOUT: return R.drawable.ic_marker_hangout;
+            default: return R.drawable.ic_marker_building;
+        }
     }
 
     private void renderMap() {
@@ -312,20 +397,31 @@ public class MapFragment extends Fragment {
             boolean isSelected = place == selected;
             options.add(new PointAnnotationOptions()
                     .withPoint(Point.fromLngLat(place.getLongitude(), place.getLatitude()))
-                    .withIconImage(isSelected ? selectedDotIcon : dotIcon)
+                    .withIconImage(markerIcon(place.getCategory(), isSelected))
                     .withTextField(place.getShortLabel())
                     .withTextSize(12.0)
                     .withTextColor(labelColor)
                     .withTextHaloColor(haloColor)
                     .withTextHaloWidth(1.5)
                     .withTextAnchor(TextAnchor.TOP)
-                    .withTextOffset(Arrays.asList(0.0, isSelected ? 1.0 : 0.6))
+                    .withTextOffset(Arrays.asList(0.0,
+                            markerSizeDp(place.getCategory(), isSelected) / 2.0 / 12.0 + 0.15))
                     // Lower keys are placed first, so the selected label always wins collisions.
                     .withSymbolSortKey(isSelected ? 0.0 : 1.0));
         }
         List<PointAnnotation> created = markers.create(options);
         for (int i = 0; i < created.size(); i++) {
             markerPlaces.put(created.get(i).getId(), shown.get(i));
+        }
+        // Manually chosen "I am here" pin, drawn just above the building's marker.
+        MapPlace manual = UserLocation.getManualPlace();
+        if (manual != null) {
+            markers.create(new PointAnnotationOptions()
+                    .withPoint(Point.fromLngLat(manual.getLongitude(), manual.getLatitude()))
+                    .withIconImage(userPin())
+                    .withIconAnchor(IconAnchor.BOTTOM)
+                    .withIconOffset(Arrays.asList(0.0, -markerSizeDp(manual.getCategory(), manual == selected) / 2.0))
+                    .withSymbolSortKey(-1.0));
         }
     }
     private void moveCamera(CameraOptions camera) {
@@ -360,6 +456,103 @@ public class MapFragment extends Fragment {
         CameraOptions camera = mapboxMap.cameraForCoordinates(points, new CameraOptions.Builder().build(),
                 fit, 19.0, null);
         moveCamera(camera);
+    }
+
+    // ---- User location: GPS when permitted, otherwise a manually chosen building ----
+
+    private boolean hasLocationPermission() {
+        return ContextCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+    private void onMyLocationClicked() {
+        if (hasLocationPermission()) {
+            startGps(true);
+        } else {
+            locationPermission.launch(new String[] {
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION });
+        }
+    }
+    private void startGps(boolean centerOnFirstFix) {
+        UserLocation.clear();
+        renderMap();
+        gpsActive = true;
+        centerOnNextFix = centerOnFirstFix;
+        LocationComponentPlugin location = LocationComponentUtils.getLocationComponent(mapView);
+        location.setLocationPuck(LocationComponentUtils.createDefault2DPuck(true));
+        location.setEnabled(true);
+        location.removeOnIndicatorPositionChangedListener(positionListener);
+        location.addOnIndicatorPositionChangedListener(positionListener);
+    }
+    private void stopGps() {
+        gpsActive = false;
+        centerOnNextFix = false;
+        if (mapView == null) { return; }
+        LocationComponentPlugin location = LocationComponentUtils.getLocationComponent(mapView);
+        location.removeOnIndicatorPositionChangedListener(positionListener);
+        location.setEnabled(false);
+    }
+    private void onGpsPosition(Point point) {
+        if (!centerOnNextFix || !isAdded()) { return; }
+        centerOnNextFix = false;
+        if (!CampusMapData.isOnCampus(point.latitude(), point.longitude())) {
+            // The map is limited to campus, so an off-campus fix cannot be shown.
+            stopGps();
+            Toast.makeText(requireContext(), R.string.map_location_off_campus, Toast.LENGTH_LONG).show();
+            showLocationPicker();
+            return;
+        }
+        moveCamera(new CameraOptions.Builder().center(point)
+                .zoom(Math.max(mapboxMap.getCameraState().getZoom(), FOCUS_ZOOM)).build());
+    }
+    private void showLocationPicker() {
+        List<MapPlace> buildings = new ArrayList<>();
+        for (MapPlace place : CampusMapData.getPlaces()) {
+            if (place.getCategory() == MapPlace.Category.BUILDING) { buildings.add(place); }
+        }
+        String[] names = new String[buildings.size()];
+        for (int i = 0; i < names.length; i++) { names[i] = buildings.get(i).getName(); }
+        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.map_location_picker_title)
+                .setItems(names, (d, which) -> setManualLocation(buildings.get(which)))
+                .setNegativeButton(android.R.string.cancel, null);
+        if (UserLocation.getManualPlaceId() != null) {
+            dialog.setNeutralButton(R.string.map_location_clear, (d, which) -> {
+                UserLocation.clear();
+                renderMap();
+            });
+        }
+        dialog.show();
+    }
+    private void setManualLocation(MapPlace building) {
+        stopGps();
+        UserLocation.setManualPlaceId(building.getId());
+        renderMap();
+        focusOnPlace(building);
+        Toast.makeText(requireContext(),
+                getString(R.string.map_location_set, building.getName()), Toast.LENGTH_SHORT).show();
+    }
+    private Bitmap userPin() {
+        if (userPinIcon != null) { return userPinIcon; }
+        int w = dp(26), h = dp(34);
+        Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        float r = w / 2f;
+        paint.setColor(ContextCompat.getColor(requireContext(), R.color.highlight_selected));
+        Path drop = new Path();
+        drop.addCircle(r, r, r, Path.Direction.CW);
+        drop.moveTo(r * 0.25f, r * 1.6f);
+        drop.lineTo(r, h);
+        drop.lineTo(r * 1.75f, r * 1.6f);
+        drop.close();
+        canvas.drawPath(drop, paint);
+        paint.setColor(ContextCompat.getColor(requireContext(), R.color.bg_primary));
+        canvas.drawCircle(r, r, r * 0.4f, paint);
+        userPinIcon = bitmap;
+        return bitmap;
     }
 
     // ---- Search, selection, and the place card ----
@@ -465,10 +658,21 @@ public class MapFragment extends Fragment {
         hideKeyboard();
         render();
     }
+    private int categoryLabel(MapPlace.Category value) {
+        switch (value) {
+            case FOOD: return R.string.place_type_food;
+            case RESTROOM: return R.string.place_type_restroom;
+            case STUDY: return R.string.place_type_study;
+            case HANGOUT: return R.string.place_type_hangout;
+            default: return R.string.place_type_building;
+        }
+    }
     private int filterId() {
         return category == MapPlace.Category.BUILDING ? R.id.chip_buildings
+                : category == MapPlace.Category.FOOD ? R.id.chip_food
+                : category == MapPlace.Category.RESTROOM ? R.id.chip_restrooms
                 : category == MapPlace.Category.STUDY ? R.id.chip_study
-                : category == MapPlace.Category.FOOD ? R.id.chip_food : R.id.chip_all;
+                : category == MapPlace.Category.HANGOUT ? R.id.chip_hangout : R.id.chip_all;
     }
     private void render() {
         renderMap();
@@ -479,12 +683,11 @@ public class MapFragment extends Fragment {
         backCallback.setEnabled(selected != null);
         if (selected != null) {
             categoryText.setText(demo ? R.string.map_demo_notice
-                    : selected.getCategory() == MapPlace.Category.BUILDING ? R.string.place_type_building
-                    : selected.getCategory() == MapPlace.Category.STUDY ? R.string.map_category_study
-                    : R.string.map_category_food);
+                    : categoryLabel(selected.getCategory()));
             title.setText(demo ? getString(R.string.map_demo_title) : selected.getName());
-            subtitle.setText(demo ? getString(R.string.map_demo_subtitle) : selected.getSubtitle());
-            subtitle.setVisibility(!demo && "Building".equals(selected.getSubtitle()) ? View.GONE : View.VISIBLE);
+            String locationLine = selected.getLocationLine();
+            subtitle.setText(demo ? getString(R.string.map_demo_subtitle) : locationLine);
+            subtitle.setVisibility(!demo && "Building".equals(locationLine) ? View.GONE : View.VISIBLE);
             boolean hasRoute = CampusMapData.hasDemoRoute(selected.getId());
             notice.setText(hasRoute ? R.string.map_demo_notice : R.string.map_unmapped);
             notice.setVisibility(demo ? View.GONE : View.VISIBLE);
@@ -581,6 +784,7 @@ public class MapFragment extends Fragment {
         state.putString("map.category", category == null ? null : category.name());
         state.putString("map.selected", selected == null ? null : selected.getId());
         state.putBoolean("map.demo", demo);
+        state.putBoolean("map.gps", gpsActive);
         if (mapboxMap != null) {
             com.mapbox.maps.CameraState camera = mapboxMap.getCameraState();
             state.putDoubleArray("map.camera", new double[] {camera.getCenter().latitude(),
@@ -595,8 +799,11 @@ public class MapFragment extends Fragment {
         if (root.getViewTreeObserver().isAlive()) {
             root.getViewTreeObserver().removeOnGlobalLayoutListener(layoutListener);
         }
+        stopGps();
         markers = null;
         routeLine = null;
+        markerIcons.clear();
+        userPinIcon = null;
         markerPlaces.clear();
         super.onDestroyView();
     }

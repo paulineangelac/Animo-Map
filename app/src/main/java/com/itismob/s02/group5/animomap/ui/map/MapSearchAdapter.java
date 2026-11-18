@@ -48,7 +48,7 @@ public class MapSearchAdapter extends RecyclerView.Adapter<MapSearchAdapter.Plac
     public void onBindViewHolder(@NonNull PlaceViewHolder holder, int position) {
         MapPlace place = places.get(position);
         holder.name.setText(place.getName());
-        holder.subtitle.setText(place.getSubtitle());
+        holder.subtitle.setText(place.getLocationLine());
         holder.icon.setImageResource(showingRecentPlaces
                 ? R.drawable.ic_map_history : R.drawable.ic_map_search);
         holder.icon.setContentDescription(holder.itemView.getContext().getString(

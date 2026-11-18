@@ -48,6 +48,12 @@
     <string name="map_zoom_in">Zoom in</string>
     <string name="map_zoom_out">Zoom out</string>
     <string name="map_show_campus">Show campus</string>
+    <string name="map_my_location">My location. Long press to choose a building instead.</string>
+    <string name="map_location_picker_title">Where are you?</string>
+    <string name="map_location_clear">Clear location</string>
+    <string name="map_location_set">Location set to %1$s</string>
+    <string name="map_location_denied">Location permission was not granted. Choose where you are instead.</string>
+    <string name="map_location_off_campus">You\'re not on campus. Choose where you are instead.</string>
     <string name="map_close_place">Close selected place</string>
     <string name="map_no_results">No matching places</string>
     <string name="map_try_search">Try a building name or room number</string>
@@ -57,13 +63,17 @@
     <string name="map_demo_notice">Demo route · not verified directions</string>
     <string name="map_demo_title">St. La Salle Hall → Henry Sy Sr. Hall</string>
     <string name="map_demo_subtitle">Fixed example on the campus map</string>
-    <string name="map_category_study">Study · demo</string>
-    <string name="map_category_food">Food · demo</string>
     <string name="map_filter_buildings">Buildings</string>
     <string name="map_filter_study">Study</string>
     <string name="map_filter_food">Food</string>
+    <string name="map_filter_restrooms">Restrooms</string>
+    <string name="map_filter_hangout">Hangout</string>
 
     <string name="place_type_building">Building</string>
+    <string name="place_type_food">Food</string>
+    <string name="place_type_restroom">Restroom</string>
+    <string name="place_type_study">Study area</string>
+    <string name="place_type_hangout">Waiting / hangout area</string>
 
     <!-- Community feed -->
     <string name="community_category_recommended">Recommended</string>

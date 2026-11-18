@@ -142,6 +142,38 @@
                     app:chipCornerRadius="18dp"
                     app:chipStrokeColor="@color/map_filter_chip_stroke"
                     app:chipStrokeWidth="0dp" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_restrooms"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:text="@string/map_filter_restrooms"
+                    android:textColor="@color/map_filter_chip_text"
+                    android:textSize="14sp"
+                    app:chipMinHeight="48dp"
+                    app:checkedIconVisible="false"
+                    app:chipBackgroundColor="@color/map_filter_chip_background"
+                    app:chipCornerRadius="18dp"
+                    app:chipStrokeColor="@color/map_filter_chip_stroke"
+                    app:chipStrokeWidth="0dp" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_hangout"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:text="@string/map_filter_hangout"
+                    android:textColor="@color/map_filter_chip_text"
+                    android:textSize="14sp"
+                    app:chipMinHeight="48dp"
+                    app:checkedIconVisible="false"
+                    app:chipBackgroundColor="@color/map_filter_chip_background"
+                    app:chipCornerRadius="18dp"
+                    app:chipStrokeColor="@color/map_filter_chip_stroke"
+                    app:chipStrokeWidth="0dp" />
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
     </LinearLayout>
@@ -183,6 +215,18 @@
             android:src="@drawable/ic_map_overview"
             android:padding="13dp"
             android:contentDescription="@string/map_show_campus"
+            app:tint="@color/text_primary" />
+        <Space
+            android:layout_width="1dp"
+            android:layout_height="8dp" />
+        <ImageButton
+            android:id="@+id/btn_map_my_location"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_map_control"
+            android:src="@drawable/ic_map_my_location"
+            android:padding="13dp"
+            android:contentDescription="@string/map_my_location"
             app:tint="@color/text_primary" />
     </LinearLayout>
     <TextView

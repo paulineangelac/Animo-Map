@@ -65,6 +65,10 @@ public final class CampusMapData {
     private CampusMapData() { }
 
     public static List<MapPlace> getPlaces() { return PLACES; }
+    /** True when the coordinates are inside the map's campus bounds. */
+    public static boolean isOnCampus(double latitude, double longitude) {
+        return latitude >= SOUTH && latitude <= NORTH && longitude >= WEST && longitude <= EAST;
+    }
     public static double[][] getCampusOutline() {
         double[][] copy = new double[CAMPUS_OUTLINE.length][];
         for (int i = 0; i < copy.length; i++) { copy[i] = CAMPUS_OUTLINE[i].clone(); }
@@ -78,9 +82,20 @@ public final class CampusMapData {
     }
     private static List<MapPlace> createPlaces() {
         List<MapPlace> p = new ArrayList<>();
-        // Only these two buildings are on the map for now. Add more with building(...).
-        building(p, LASALLE, "St. La Salle Hall", "La Salle", 14.564442015164635, 120.99351319661409);
-        building(p, HENRY_SY, "Henry Sy Sr. Hall", "Henry Sy", 14.565146666735775, 120.99317868127247);
+        // Building coordinates supplied by the team. Add more with building(...).
+        building(p, LASALLE, "St. La Salle Hall", "La Salle", 14.564366010195952, 120.99383371430477);
+        building(p, "connon", "Br. Connon Hall", "Connon", 14.5639910530407, 120.99335203434539);
+        building(p, "yuchengco", "Yuchengco Hall", "Yuchengco", 14.564356560750333, 120.99315698814179);
+        building(p, HENRY_SY, "Henry Sy Sr. Hall", "Henry Sy", 14.565000549063477, 120.99309197273723);
+        building(p, "velasco", "Velasco Hall", "Velasco", 14.565497262251304, 120.99324690305419);
+        building(p, "bloemen", "Bloemen Hall", "Bloemen", 14.565295096106826, 120.9926631477404);
+        building(p, "miguel", "Miguel Hall", "Miguel", 14.565628469329429, 120.99256908290198);
+        building(p, "gokongwei", "Gokongwei Hall", "Gokongwei", 14.566266710334041, 120.99299380292196);
+        building(p, "science_tech", "Science and Technology Research Center", "STRC", 14.56635217686468, 120.99208314727609);
+        building(p, "razon", "Razon Sports Center", "Razon", 14.56701420145231, 120.9920648806158);
+        building(p, "andrew", "Br. Andrew Gonzalez Hall", "Andrew", 14.56705284665336, 120.99261117849204);
+        building(p, "faculty", "Faculty Center", "Faculty", 14.564665836048386, 120.99234498725808);
+        building(p, "st_joseph", "St. Joseph Hall", "St. Joseph", 14.564896118661604, 120.9925912158032);
         return Collections.unmodifiableList(p);
     }
     private static void building(List<MapPlace> p, String id, String name, String label,
