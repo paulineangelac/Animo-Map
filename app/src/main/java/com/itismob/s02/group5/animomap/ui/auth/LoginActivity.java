@@ -24,6 +24,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.itismob.s02.group5.animomap.MainActivity;
 import com.itismob.s02.group5.animomap.R;
+import com.itismob.s02.group5.animomap.ui.moderation.UserRole;
 
 import java.util.Locale;
 
@@ -115,6 +116,9 @@ public class LoginActivity extends AppCompatActivity {
             showError(etPassword, "Enter your password");
             return;
         }
+
+        // Remember if this is the moderator account, so Profile can show the moderator tools
+        UserRole.saveLogin(this, email);
 
         Intent intent = new Intent(this, MainActivity.class);
         // Removes Login from the back stack, so pressing Back in the app won't return here

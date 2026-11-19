@@ -43,6 +43,9 @@
         <activity
             android:name=".ui.profile.OtherProfileActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.moderation.ModeratorActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
