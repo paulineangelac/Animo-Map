@@ -1,0 +1,12 @@
+{
+  "version": 8,
+  "name": "Animo Map campus picker",
+  "sources": {},
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": { "background-color": "#101316" }
+    }
+  ]
+}

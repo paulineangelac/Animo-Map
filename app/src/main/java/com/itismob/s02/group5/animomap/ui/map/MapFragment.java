@@ -8,10 +8,10 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +33,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -81,7 +80,6 @@ import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions;
 import com.mapbox.maps.plugin.locationcomponent.LocationComponentPlugin;
 import com.mapbox.maps.plugin.locationcomponent.LocationComponentUtils;
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -91,19 +89,20 @@ import java.util.Map;
 
 /** Campus map screen: a Mapbox map with place markers, search, filters, and a demo route. */
 public class MapFragment extends Fragment {
+    private static final String TAG = "MapFragment";
     private static final double FOCUS_ZOOM = 17.5;
     private static final long CAMERA_MS = 600L;
     private static final double MASK_OPACITY = 0.8;
     private static final double MASK_FADE_METERS = 30.0;
+    private static final String FADE_SOURCE = "campus-fade-source";
     private static final String PREFS = "animomap_map";
     private static final String PREF_RECENT = "recent_places";
     // Buildings are numerous, so their badges are smaller than the other categories'.
-    private static final int BUILDING_MARKER_DP = 24, BUILDING_SELECTED_DP = 36;
-    private static final int PLACE_MARKER_DP = 32, PLACE_SELECTED_DP = 42;
 
     private View root, header, controls, card;
     private MapView mapView;
     private MapboxMap mapboxMap;
+    private CampusMask.Request fadeRequest;
     private PointAnnotationManager markers;
     private PolylineAnnotationManager routeLine;
     private final Map<String, MapPlace> markerPlaces = new HashMap<>();
@@ -281,9 +280,12 @@ public class MapFragment extends Fragment {
             mapboxMap.setCamera(overviewCamera());
         }
         // The dark style matches the app's dark design system.
-        mapboxMap.loadStyle(Style.DARK, style -> {
+        View requestedView = root;
+        MapboxMap requestedMap = mapboxMap;
+        requestedMap.loadStyle(Style.DARK, style -> {
+            if (getView() != requestedView || mapboxMap != requestedMap || !style.isValid()) return;
             hideBasemapPlaceNames(style);
-            addOutsideCampusMask(style);
+            addOutsideCampusMask(style, requestedView, requestedMap);
             AnnotationConfig noConfig = null;
             markers = PointAnnotationManagerKt.createPointAnnotationManager(
                     AnnotationsUtils.getAnnotations(mapView), noConfig);
@@ -312,7 +314,7 @@ public class MapFragment extends Fragment {
             }
         }
     }
-    private void addOutsideCampusMask(Style style) {
+    private void addOutsideCampusMask(Style style, View requestedView, MapboxMap requestedMap) {
         int color = ContextCompat.getColor(requireContext(), R.color.bg_primary);
         double w = CampusMapData.WEST, e = CampusMapData.EAST;
         double s = CampusMapData.SOUTH, n = CampusMapData.NORTH;
@@ -331,21 +333,41 @@ public class MapFragment extends Fragment {
         outside.fillOpacity(MASK_OPACITY);
         outside.bindTo(style);
 
-        new ImageSource.Builder("campus-fade-source")
+        new ImageSource.Builder(FADE_SOURCE)
                 .coordinates(Arrays.asList(
                         Arrays.asList(w, n), Arrays.asList(e, n),
                         Arrays.asList(e, s), Arrays.asList(w, s)))
                 .build().bindTo(style);
-        Bitmap fade = CampusMask.create(color, (int) Math.round(MASK_OPACITY * 255),
-                MASK_FADE_METERS, 2.0);
-        ByteBuffer pixels = ByteBuffer.allocateDirect(fade.getByteCount());
-        fade.copyPixelsToBuffer(pixels);
-        pixels.rewind();
-        style.updateStyleImageSourceImage("campus-fade-source",
-                new Image(fade.getWidth(), fade.getHeight(), new DataRef(pixels)));
-        RasterLayer layer = new RasterLayer("campus-fade-layer", "campus-fade-source");
+        // Reserve the same layer position below the markers while the image is prepared.
+        RasterLayer layer = new RasterLayer("campus-fade-layer", FADE_SOURCE);
         layer.rasterFadeDuration(0.0);
         layer.bindTo(style);
+        cancelFadeRequest();
+        fadeRequest = CampusMask.request(color, (int) Math.round(MASK_OPACITY * 255),
+                MASK_FADE_METERS, 2.0, fade -> {
+                    if (getView() != requestedView || mapboxMap != requestedMap) return;
+                    try {
+                        if (!style.isValid() || requestedMap.getStyle() != style
+                                || !style.styleSourceExists(FADE_SOURCE)) return;
+                        String error = style.updateStyleImageSourceImage(FADE_SOURCE,
+                                new Image(fade.width, fade.height,
+                                        new DataRef(fade.pixelsForUpload()))).getError();
+                        if (error == null) {
+                            Log.d(TAG, "Campus fade uploaded");
+                        } else {
+                            Log.w(TAG, "Could not upload the campus fade: " + error);
+                        }
+                    } catch (RuntimeException | OutOfMemoryError error) {
+                        Log.w(TAG, "Could not upload the campus fade", error);
+                    }
+                });
+    }
+
+    private void cancelFadeRequest() {
+        if (fadeRequest != null) {
+            fadeRequest.cancel();
+            fadeRequest = null;
+        }
     }
     private CameraOptions overviewCamera() {
         return new CameraOptions.Builder()
@@ -357,37 +379,11 @@ public class MapFragment extends Fragment {
     /** Round badge with a symbol per category, so places can be told apart without relying on colour. */
     private Bitmap markerIcon(MapPlace.Category value, boolean isSelected) {
         String key = value.name() + isSelected;
-        Bitmap cached = markerIcons.get(key);
-        if (cached != null) { return cached; }
-        int size = dp(markerSizeDp(value, isSelected));
-        float stroke = dp(isSelected ? 2.5f : (value == MapPlace.Category.BUILDING ? 1.5f : 2));
-        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        float center = size / 2f;
-        paint.setColor(ContextCompat.getColor(requireContext(), R.color.surface_card));
-        canvas.drawCircle(center, center, center, paint);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(stroke);
-        int accent = ContextCompat.getColor(requireContext(),
-                isSelected ? R.color.highlight_selected : R.color.accent_teal);
-        paint.setColor(accent);
-        canvas.drawCircle(center, center, center - stroke / 2f, paint);
-        Drawable glyph = ContextCompat.getDrawable(requireContext(), MapPlace.glyphRes(value));
-        if (glyph != null) {
-            glyph = DrawableCompat.wrap(glyph.mutate());
-            DrawableCompat.setTint(glyph, accent);
-            int inset = Math.round(size * 0.26f);
-            glyph.setBounds(inset, inset, size - inset, size - inset);
-            glyph.draw(canvas);
-        }
-        markerIcons.put(key, bitmap);
-        return bitmap;
+        return markerIcons.computeIfAbsent(key,
+                unused -> CampusMarkerIcons.create(requireContext(), value, isSelected));
     }
     private int markerSizeDp(MapPlace.Category value, boolean isSelected) {
-        boolean building = value == MapPlace.Category.BUILDING;
-        return isSelected ? (building ? BUILDING_SELECTED_DP : PLACE_SELECTED_DP)
-                : (building ? BUILDING_MARKER_DP : PLACE_MARKER_DP);
+        return CampusMarkerIcons.sizeDp(value, isSelected);
     }
 
     private void renderMap() {
@@ -868,6 +864,7 @@ public class MapFragment extends Fragment {
         }
     }
     @Override public void onDestroyView() {
+        cancelFadeRequest();
         if (observedTree != null && observedTree.isAlive()) {
             observedTree.removeOnGlobalLayoutListener(layoutListener);
         }
