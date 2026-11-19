@@ -17,15 +17,20 @@
 
         <TextView
             android:id="@+id/tv_community_title"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
+            android:layout_marginHorizontal="44dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
             android:text="@string/title_community"
             android:textColor="@color/text_primary"
             android:textSize="24sp"
             android:textStyle="bold" />
 
         <ImageButton
+            android:id="@+id/community_notifications"
             android:layout_width="44dp"
             android:layout_height="44dp"
             android:layout_alignParentEnd="true"
@@ -38,26 +43,27 @@
             android:src="@drawable/ic_notification" />
     </RelativeLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/community_controls"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="68dp"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="4dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/community_header">
         <TextView
             android:id="@+id/community_create_post"
             android:layout_width="wrap_content"
-            android:layout_height="44dp"
+            android:layout_height="40dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="16dp"
             android:background="@drawable/bg_community_create_button"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
-            android:drawableStart="@drawable/ic_community_create"
+            app:drawableStartCompat="@drawable/ic_community_create"
             android:drawablePadding="8dp"
             android:gravity="center"
             android:paddingHorizontal="10dp"
@@ -66,21 +72,17 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
         <TextView
             android:id="@+id/community_filter"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
+            android:layout_height="40dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentBottom="true"
             android:background="@android:color/transparent"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackgroundBorderless"
-            android:drawableEnd="@drawable/ic_community_expand"
+            app:drawableEndCompat="@drawable/ic_community_expand"
             android:drawablePadding="4dp"
             android:gravity="center_vertical"
             android:paddingStart="8dp"
@@ -88,7 +90,7 @@
             android:text="@string/community_filter_recent"
             android:textColor="@color/text_secondary"
             android:textSize="13sp" />
-    </LinearLayout>
+    </RelativeLayout>
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/community_review_notice"
@@ -121,7 +123,7 @@
                 android:layout_height="22dp"
                 android:background="@drawable/bg_profile_avatar"
                 android:gravity="center"
-                android:text="i"
+                android:text="@string/community_info_symbol"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />

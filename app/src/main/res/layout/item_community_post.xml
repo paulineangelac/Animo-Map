@@ -11,7 +11,7 @@
     app:cardBackgroundColor="@color/surface_card"
     app:cardCornerRadius="20dp"
     app:cardElevation="0dp"
-    app:strokeColor="@color/border_subtle"
+    app:strokeColor="@color/community_card_border"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -84,6 +84,16 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/community_post_more"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/community_post_more"
+                android:padding="10dp"
+                android:src="@drawable/ic_community_more"
+                app:tint="@color/text_secondary" />
         </LinearLayout>
 
         <TextView
@@ -114,21 +124,43 @@
             android:id="@+id/community_post_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="8dp"
             android:lineSpacingExtra="2dp"
             android:textColor="@color/text_secondary"
             android:textSize="14sp" />
 
-        <ImageView
-            android:id="@+id/community_post_image"
+        <FrameLayout
+            android:id="@+id/community_post_photo_area"
             android:layout_width="match_parent"
             android:layout_height="176dp"
             android:layout_marginTop="12dp"
-            android:contentDescription="@string/community_photo_placeholder"
-            android:scaleType="centerCrop"
-            android:visibility="gone" />
+            android:background="@drawable/bg_community_dropdown"
+            android:visibility="gone">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/community_post_photos"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:overScrollMode="never" />
+
+            <TextView
+                android:id="@+id/community_post_photo_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="8dp"
+                android:background="@drawable/bg_community_dropdown"
+                android:paddingStart="8dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp"
+                android:textColor="@color/text_primary"
+                android:textSize="12sp"
+                android:visibility="gone" />
+        </FrameLayout>
 
         <LinearLayout
+            android:id="@+id/community_post_actions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -138,34 +170,63 @@
             <TextView
                 android:id="@+id/community_upvote_button"
                 android:layout_width="wrap_content"
-                android:layout_height="44dp"
-                android:background="@drawable/bg_community_vote"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
+                app:drawableStartCompat="@drawable/ic_community_like"
+                android:drawablePadding="6dp"
                 android:focusable="true"
                 android:gravity="center"
-                android:minWidth="76dp"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
+                android:minWidth="44dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="8dp"
                 android:textColor="@color/text_primary"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/community_comments_button"
                 android:layout_width="wrap_content"
-                android:layout_height="44dp"
-                android:layout_marginStart="8dp"
-                android:background="?attr/selectableItemBackground"
+                android:layout_height="40dp"
+                android:layout_marginStart="12dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
-                android:drawableStart="@drawable/ic_community_comment"
+                app:drawableStartCompat="@drawable/ic_community_comment"
                 android:drawablePadding="6dp"
                 android:focusable="true"
                 android:gravity="center"
-                android:minWidth="44dp"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
+                android:minWidth="36dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
+
+            <ImageButton
+                android:id="@+id/community_share_button"
+                android:layout_width="44dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="@string/community_share_post"
+                android:focusable="true"
+                android:padding="10dp"
+                android:src="@drawable/ic_community_share"
+                app:tint="@color/text_secondary" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/community_save_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/community_save_post"
+                android:padding="10dp"
+                android:src="@drawable/ic_community_bookmark_selector" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
