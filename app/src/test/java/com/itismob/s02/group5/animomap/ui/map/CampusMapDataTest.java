@@ -18,8 +18,17 @@ public class CampusMapDataTest {
                     onCampus(place.getLatitude(), place.getLongitude()));
             assertFalse(place.getName().isEmpty());
         }
-        assertEquals(13, ids.size());
+        assertEquals(21, ids.size());
         assertTrue(onCampus(CampusMapData.CENTER_LAT, CampusMapData.CENTER_LNG));
+    }
+    @Test public void everyCategoryHasAtLeastOneMarkerPlace() {
+        for (MapPlace.Category category : MapPlace.Category.values()) {
+            boolean found = false;
+            for (MapPlace place : CampusMapData.getPlaces()) {
+                if (place.getCategory() == category && place.hasMapMarker()) { found = true; }
+            }
+            assertTrue(category + " has no marker place", found);
+        }
     }
     @Test public void namesAndAliasesAreSearchable() {
         MapPlace henry = CampusMapData.findPlace(CampusMapData.HENRY_SY);

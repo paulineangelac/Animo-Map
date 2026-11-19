@@ -109,11 +109,45 @@ public final class CampusMapData {
         building(p, "andrew", "Br. Andrew Gonzalez Hall", "Andrew", 14.56705284665336, 120.99261117849204);
         building(p, "faculty", "Faculty Center", "Faculty", 14.564665836048386, 120.99234498725808);
         building(p, "st_joseph", "St. Joseph Hall", "St. Joseph", 14.564896118661604, 120.9925912158032);
+        // Points of interest. Coordinates are approximate (placed beside nearby buildings), so
+        // adjust them once the team has collected exact positions.
+        // Agno is a standalone food court between STRC and Miguel Hall, not inside a building.
+        p.add(new MapPlace("agno_food_court", "Agno Food Court", "Agno", "Between STRC and Miguel Hall",
+                MapPlace.Category.FOOD, 14.56599, 120.99233, true, "", 0, "",
+                "Food stalls and seating for a quick meal between classes."));
+        poi(p, "bloemen_food", "Bloemen Food Stalls", "Bloemen Food", MapPlace.Category.FOOD,
+                14.56508, 120.99282, "Bloemen Hall",
+                "Snacks and drinks near Bloemen Hall.");
+        poi(p, "gokongwei_restroom", "Gokongwei Hall Restrooms", "Gokongwei WC", MapPlace.Category.RESTROOM,
+                14.56610, 120.99312, "Gokongwei Hall",
+                "Restrooms at the entrance of Gokongwei Hall.");
+        poi(p, "yuchengco_restroom", "Yuchengco Hall Restrooms", "Yuchengco WC", MapPlace.Category.RESTROOM,
+                14.56450, 120.99325, "Yuchengco Hall",
+                "Restrooms at the entrance of Yuchengco Hall.");
+        poi(p, "henry_sy_library", "Henry Sy Sr. Hall Library", "Library", MapPlace.Category.STUDY,
+                14.56515, 120.99318, "Henry Sy Sr. Hall",
+                "Quiet reading and group study spaces.");
+        poi(p, "faculty_study", "Faculty Center Study Area", "Faculty Study", MapPlace.Category.STUDY,
+                14.56480, 120.99245, "Faculty Center",
+                "Tables and seats for studying near the Faculty Center.");
+        poi(p, "velasco_patio", "Velasco Hall Patio", "Velasco Patio", MapPlace.Category.HANGOUT,
+                14.56535, 120.99335, "Velasco Hall",
+                "Open patio for waiting and hanging out with friends.");
+        poi(p, "andrew_lobby", "Br. Andrew Gonzalez Hall Lobby", "Andrew Lobby", MapPlace.Category.HANGOUT,
+                14.56690, 120.99270, "Br. Andrew Gonzalez Hall",
+                "Lobby seating for waiting between classes.");
         return Collections.unmodifiableList(p);
     }
     private static void building(List<MapPlace> p, String id, String name, String label,
                                  double lat, double lng) {
         p.add(new MapPlace(id, name, label, "Building", MapPlace.Category.BUILDING, lat, lng, true));
+    }
+    /** An outdoor point of interest (food, restroom, study or hangout) shown with its own marker. */
+    private static void poi(List<MapPlace> p, String id, String name, String label,
+                            MapPlace.Category category, double lat, double lng,
+                            String nearBuilding, String description) {
+        p.add(new MapPlace(id, name, label, nearBuilding, category, lat, lng, true,
+                nearBuilding, 0, "", description));
     }
     public static boolean hasDemoRoute(String destinationId) { return HENRY_SY.equals(destinationId); }
 
