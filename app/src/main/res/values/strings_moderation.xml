@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text for the moderator tools. Kept in its own file so it doesn't clash with other strings files. -->
+<resources>
+    <!-- Profile: Moderator tools card (only moderators see it) -->
+    <string name="moderator_card_title">Moderator tools</string>
+    <string name="moderator_card_summary">To review: Recommendations %1$d · Reports %2$d</string>
+    <string name="moderator_card_button">Open moderator tools</string>
+
+    <!-- Moderator tools screen -->
+    <string name="moderation_title">Moderator tools</string>
+    <string name="moderation_back">Back to profile</string>
+    <string name="moderation_intro">Only moderators can see this screen.</string>
+    <string name="moderation_recommendations_heading">New Place Recommendations</string>
+    <string name="moderation_reports_heading">Reported posts</string>
+    <string name="moderation_waiting_count">%1$d waiting for review</string>
+
+    <!-- Recommendation and report cards -->
+    <string name="moderation_submitted_by">by %1$s · %2$s</string>
+    <string name="moderation_posted_by">Posted by %1$s · Reports: %2$d</string>
+    <string name="moderation_reason">Reason: %1$s</string>
+    <string name="moderation_approve">Approve</string>
+    <string name="moderation_reject">Reject</string>
+    <string name="moderation_keep_post">Keep post</string>
+    <string name="moderation_remove_post">Remove post</string>
+    <string name="report_status_open">Needs review</string>
+    <string name="report_status_kept">Kept</string>
+    <string name="report_status_removed">Removed</string>
+</resources>

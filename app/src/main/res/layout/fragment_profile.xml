@@ -58,18 +58,38 @@
                 android:orientation="vertical"
                 android:padding="24dp">
 
-                <TextView
+                <!-- Avatar: shows the photo if one was picked, otherwise the initials -->
+                <FrameLayout
                     android:layout_width="76dp"
-                    android:layout_height="76dp"
-                    android:background="@drawable/bg_profile_avatar"
-                    android:gravity="center"
-                    android:text="AS"
-                    android:textColor="@color/highlight_selected"
-                    android:textSize="23sp"
-                    android:textStyle="bold"
-                    android:contentDescription="@string/profile_avatar_description" />
+                    android:layout_height="76dp">
+
+                    <TextView
+                        android:id="@+id/tvProfileInitials"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_profile_avatar"
+                        android:gravity="center"
+                        android:text="AS"
+                        android:textColor="@color/highlight_selected"
+                        android:textSize="23sp"
+                        android:textStyle="bold"
+                        android:contentDescription="@string/profile_avatar_description" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/ivProfilePhoto"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@string/profile_photo_description"
+                        android:padding="1dp"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.AnimoMap.Circle"
+                        app:strokeColor="@color/accent_teal"
+                        app:strokeWidth="2dp" />
+                </FrameLayout>
 
                 <TextView
+                    android:id="@+id/tvProfileName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
@@ -79,6 +99,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvProfileUsername"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
@@ -88,6 +109,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvProfileBio"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -95,6 +117,90 @@
                     android:text="@string/profile_sample_bio"
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
+
+                <!-- College, major, and ID number (hidden until the student adds them) -->
+                <TextView
+                    android:id="@+id/tvProfileDetails"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <!-- Opens the Edit Profile screen -->
+                <Button
+                    android:id="@+id/btnEditProfile"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minHeight="44dp"
+                    android:paddingHorizontal="24dp"
+                    android:text="@string/profile_edit_button"
+                    android:textAllCaps="false"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/surface_elevated"
+                    app:cornerRadius="14dp"
+                    app:strokeColor="@color/border_subtle"
+                    app:strokeWidth="1dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Moderator tools: only shows when a moderator is logged in -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardModeratorTools"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/surface_card"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/accent_teal"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/moderator_card_title"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvModeratorSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+                <Button
+                    android:id="@+id/btnOpenModeratorTools"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minHeight="48dp"
+                    android:text="@string/moderator_card_button"
+                    android:textAllCaps="false"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/primary_teal"
+                    app:cornerRadius="14dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -108,6 +214,7 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/tvPostsHeading"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
@@ -116,41 +223,16 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <com.google.android.material.card.MaterialCardView
+        <!-- The student's posts (filled by MyPostAdapter) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvMyPosts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:cardBackgroundColor="@color/surface_card"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/border_subtle"
-            app:strokeWidth="1dp">
+            android:nestedScrollingEnabled="false" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/profile_sample_post_title"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/profile_sample_post_detail"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
 
         <TextView
+            android:id="@+id/tvReviewsHeading"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -159,41 +241,14 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <com.google.android.material.card.MaterialCardView
+        <!-- The student's place reviews (filled by MyReviewAdapter) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvMyReviews"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:cardBackgroundColor="@color/surface_card"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/border_subtle"
-            app:strokeWidth="1dp">
+            android:nestedScrollingEnabled="false" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/profile_sample_review_title"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/profile_sample_review_detail"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Log out: goes back to the Login screen -->
+        <!-- Log out -->
         <Button
             android:id="@+id/btnLogout"
             android:layout_width="match_parent"

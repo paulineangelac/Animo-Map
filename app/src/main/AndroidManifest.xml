@@ -46,6 +46,16 @@
         <activity
             android:name=".ui.community.CommunityPhotoViewerActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.profile.EditProfileActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.profile.OtherProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.moderation.ModeratorActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

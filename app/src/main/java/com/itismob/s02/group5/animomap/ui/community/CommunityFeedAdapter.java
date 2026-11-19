@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.card.MaterialCardView;
 import com.itismob.s02.group5.animomap.R;
+import com.itismob.s02.group5.animomap.ui.profile.OtherProfileActivity;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -136,6 +137,13 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
             holder.saveButton.setContentDescription(context.getString(
                     saved ? R.string.community_remove_saved_post : R.string.community_save_post));
         });
+
+        // Tapping the author's picture or name opens their profile (View Other User Profiles)
+        View.OnClickListener openAuthorProfile = view ->
+                OtherProfileActivity.open(context, post.getAuthorName());
+        holder.authorAvatar.setOnClickListener(openAuthorProfile);
+        holder.authorPhoto.setOnClickListener(openAuthorProfile);
+        holder.authorName.setOnClickListener(openAuthorProfile);
     }
 
     @Override

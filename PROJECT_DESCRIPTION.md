@@ -8,7 +8,7 @@
      
 2. **INTENDED USERS**  
 * Students: Students with verified DLSU email accounts can use the application's map, search for destinations, get directions, rate and review places, participate in community discussions, submit recommendations, and create or join private groups.  
-* Moderators: Designated moderators review community submissions, approve or reject posts, and verify student-recommended locations before they are added to the public map.
+* Moderators: Designated moderators review community submissions, may remove reported or inappropriate community content, and verify student-recommended locations before they are added to the public map.
 
 3. **MAIN FEATURES**  
    **3.1 Campus map and search**  
@@ -55,11 +55,7 @@
   * General Discussion  
 * New Place Recommendations require a place name, selected or pinned location, description, and optional photo.  
 * Other students can comment on and upvote approved community posts.  
-* Posts can be viewed by recency or popularity.  
-* All submitted community posts undergo moderator review before appearing in the public Community Feed.  
-* Submitted posts are assigned Pending, Approved, or Rejected statuses.  
-* Students can view the approval status of their own submissions.  
-* Only approved posts appear in the public Community Feed.  
+* Posts can be viewed by recency or popularity.
 * A New Place Recommendation that has been approved as a community post must undergo a separate location verification and approval process before it can become a public map point.  
 * Once verified and approved for map placement, the recommended location appears as a public map marker and can be viewed and reviewed by other students.  
   **3.6 Popular spots**  
@@ -93,7 +89,6 @@
 4. **DATA AND PERMISSIONS**  
 * Social features require a verified DLSU email account.  
 * Posts, comments, ratings, groups, user profiles, and approved map points are shared across devices.  
-* Community posts must be approved by moderators before becoming visible in the public Community Feed.  
 * New Place Recommendations require separate location verification and approval before becoming public map points.  
 * Location permission is optional. Students can select a starting point manually.  
 * Joining a group does not automatically turn on location sharing.  
@@ -115,18 +110,21 @@
 * A student can find a classroom in a pilot building and compare available routes and walking times.  
 * A student can find and review a food place, restroom, or waiting area.  
 * A student can search for locations and browse map markers using category filters.  
-* A student can submit a community post and view its moderation status.  
-* Only approved community posts appear in the public Community Feed.  
+* A student can create and immediately publish a community post under the available categories.
+* A student can view their own community posts through their profile.
+* Students can report inappropriate community content for moderator review. 
+* Moderators can review reported content and take appropriate action.
 * A student recommendation becomes a public map point only after moderator approval and location verification.  
+* Students can view the map approval status of their submitted New Place Recommendations.
 * Students can discover recently added places and popular hotspots through the map.  
-* Students can interact with approved community posts through comments and upvotes.  
+* Students can interact with community posts through comments and upvotes.  
 * Students can create and edit their profiles, use unique usernames, and view other students' public profiles.  
 * Students can create or join private groups and view their group members.  
 * Students on different devices can join a private group and see a member's building when that member chooses to share it.  
 * Turning sharing off or closing the app stops further location updates.
 
 7. **PROJECT ASSUMPTIONS**  
-* The team will choose pilot buildings it can accurately survey and is allowed to map.  
+* The team may decide to choose pilot buildings it can accurately survey and is allowed to map.  
 * Nearby food places will be shown as destinations, but directions inside those establishments are not required.  
 * The team will decide the exact DLSU email verification method during technical design.  
 * The team will determine the criteria for identifying popular hotspots based on recent community engagement.  

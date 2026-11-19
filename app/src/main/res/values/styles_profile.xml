@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Makes profile photos round. Used by ShapeableImageView on Profile and Edit Profile. -->
+<resources>
+    <style name="ShapeAppearance.AnimoMap.Circle" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+</resources>
