@@ -123,15 +123,15 @@ public class MapFragment extends Fragment {
     private MapPlace selected;
     private MapPlace.Category category;
     private boolean demo, updatingUi, focusRequested;
-    private boolean gpsActive, centerOnNextFix;
+    private boolean gpsRequested, gpsUpdatesRunning, centerOnNextFix;
     private Bitmap userPinIcon;
     private final OnIndicatorPositionChangedListener positionListener = this::onGpsPosition;
     private final ActivityResultLauncher<String[]> locationPermission = registerForActivityResult(
             new ActivityResultContracts.RequestMultiplePermissions(), result -> {
                 if (!isAdded() || getView() == null) { return; }
                 if (hasLocationPermission()) {
-                    startGps(true);
-                } else {
+                    startGps();
+                } else if (!isHidden()) {
                     Toast.makeText(requireContext(), R.string.map_location_denied, Toast.LENGTH_LONG).show();
                     showLocationPicker();
                 }
@@ -178,14 +178,14 @@ public class MapFragment extends Fragment {
             demo = state.getBoolean("map.demo") && selected != null
                     && CampusMapData.hasDemoRoute(selected.getId());
             cameraToRestore = state.getDoubleArray("map.camera");
-            gpsActive = state.getBoolean("map.gps");
+            gpsRequested = state.getBoolean("map.gps");
+            centerOnNextFix = state.getBoolean("map.center_on_next_fix");
         }
         setupMap();
-        // After a rotation, turn the location marker back on if permission is still granted.
-        boolean resumeGps = gpsActive && hasLocationPermission();
-        gpsActive = false;
-        if (resumeGps) { startGps(false); }
         setupSearch(view);
+        if (state != null && state.getBoolean("map.search_open")) {
+            searchPanel.setVisibility(View.VISIBLE);
+        }
         updatingUi = true;
         filters.check(filterId());
         updatingUi = false;
@@ -240,6 +240,19 @@ public class MapFragment extends Fragment {
         root.setFocusableInTouchMode(true);
         root.requestFocus();
         render();
+    }
+
+    @Override public void onResume() {
+        super.onResume();
+        syncGpsUpdates();
+    }
+
+    @Override public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (getView() == null) { return; }
+        updateBackCallbacks();
+        syncGpsUpdates();
+        if (hidden && search.hasFocus()) { hideKeyboard(); }
     }
 
     // ---- Mapbox ----
@@ -471,34 +484,44 @@ public class MapFragment extends Fragment {
     }
     private void onMyLocationClicked() {
         if (hasLocationPermission()) {
-            startGps(true);
+            startGps();
         } else {
             locationPermission.launch(new String[] {
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION });
         }
     }
-    private void startGps(boolean centerOnFirstFix) {
+    private void startGps() {
         UserLocation.clear();
         renderMap();
-        gpsActive = true;
-        centerOnNextFix = centerOnFirstFix;
-        LocationComponentPlugin location = LocationComponentUtils.getLocationComponent(mapView);
-        location.setLocationPuck(LocationComponentUtils.createDefault2DPuck(true));
-        location.setEnabled(true);
-        location.removeOnIndicatorPositionChangedListener(positionListener);
-        location.addOnIndicatorPositionChangedListener(positionListener);
+        gpsRequested = true;
+        centerOnNextFix = true;
+        syncGpsUpdates();
     }
     private void stopGps() {
-        gpsActive = false;
+        gpsRequested = false;
         centerOnNextFix = false;
-        if (mapView == null) { return; }
+        setGpsUpdatesRunning(false);
+    }
+    private void syncGpsUpdates() {
+        setGpsUpdatesRunning(gpsRequested && !isHidden() && hasLocationPermission());
+    }
+    private void setGpsUpdatesRunning(boolean running) {
+        if (mapView == null || gpsUpdatesRunning == running) { return; }
+        // Hiding the Map pauses updates without discarding the user's location preference.
+        gpsUpdatesRunning = running;
         LocationComponentPlugin location = LocationComponentUtils.getLocationComponent(mapView);
-        location.removeOnIndicatorPositionChangedListener(positionListener);
-        location.setEnabled(false);
+        if (running) {
+            location.setLocationPuck(LocationComponentUtils.createDefault2DPuck(true));
+            location.setEnabled(true);
+            location.addOnIndicatorPositionChangedListener(positionListener);
+        } else {
+            location.removeOnIndicatorPositionChangedListener(positionListener);
+            location.setEnabled(false);
+        }
     }
     private void onGpsPosition(Point point) {
-        if (!centerOnNextFix || !isAdded()) { return; }
+        if (!gpsUpdatesRunning || !centerOnNextFix || isHidden() || getView() == null) { return; }
         centerOnNextFix = false;
         if (!CampusMapData.isOnCampus(point.latitude(), point.longitude())) {
             // The map is limited to campus, so an off-campus fix cannot be shown.
@@ -633,14 +656,15 @@ public class MapFragment extends Fragment {
     private void openSearch() {
         syncSearchChips();
         searchPanel.setVisibility(View.VISIBLE);
-        searchBackCallback.setEnabled(true);
+        updateBackCallbacks();
         suppressSearchChange = true;
         search.setText("");
         suppressSearchChange = false;
         updateSearchResults("");
         search.requestFocus();
         search.postDelayed(() -> {
-            if (!isAdded() || searchPanel.getVisibility() != View.VISIBLE) { return; }
+            if (!isAdded() || isHidden() || getView() != root
+                    || searchPanel.getVisibility() != View.VISIBLE) { return; }
             WindowCompat.getInsetsController(requireActivity().getWindow(), search)
                     .show(WindowInsetsCompat.Type.ime());
         }, 160);
@@ -648,10 +672,15 @@ public class MapFragment extends Fragment {
     private void closeSearch() {
         hideKeyboard();
         searchPanel.setVisibility(View.GONE);
-        searchBackCallback.setEnabled(false);
+        updateBackCallbacks();
         suppressSearchChange = true;
         search.setText("");
         suppressSearchChange = false;
+    }
+    private void updateBackCallbacks() {
+        boolean mapVisible = !isHidden();
+        backCallback.setEnabled(mapVisible && selected != null);
+        searchBackCallback.setEnabled(mapVisible && searchPanel.getVisibility() == View.VISIBLE);
     }
     private void updateSearchResults(String query) {
         boolean recents = query.isEmpty();
@@ -723,7 +752,7 @@ public class MapFragment extends Fragment {
         searchPrompt.setText(selected == null ? getString(R.string.map_search_landing_label)
                 : selected.getName());
         card.setVisibility(selected == null ? View.GONE : View.VISIBLE);
-        backCallback.setEnabled(selected != null);
+        updateBackCallbacks();
         if (selected != null) {
             categoryText.setText(demo ? R.string.map_demo_notice
                     : MapPlace.categoryLabelRes(selected.getCategory()));
@@ -827,7 +856,10 @@ public class MapFragment extends Fragment {
         state.putString("map.category", category == null ? null : category.name());
         state.putString("map.selected", selected == null ? null : selected.getId());
         state.putBoolean("map.demo", demo);
-        state.putBoolean("map.gps", gpsActive);
+        state.putBoolean("map.gps", gpsRequested);
+        state.putBoolean("map.center_on_next_fix", centerOnNextFix);
+        state.putBoolean("map.search_open", searchPanel != null
+                && searchPanel.getVisibility() == View.VISIBLE);
         if (mapboxMap != null) {
             CameraState camera = mapboxMap.getCameraState();
             state.putDoubleArray("map.camera", new double[] {camera.getCenter().latitude(),
@@ -842,7 +874,7 @@ public class MapFragment extends Fragment {
         if (root.getViewTreeObserver().isAlive()) {
             root.getViewTreeObserver().removeOnGlobalLayoutListener(layoutListener);
         }
-        stopGps();
+        setGpsUpdatesRunning(false);
         markers = null;
         routeLine = null;
         markerIcons.clear();

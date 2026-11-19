@@ -57,8 +57,14 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
         Context context = holder.itemView.getContext();
 
         holder.authorAvatar.setText(post.getAuthorInitials());
+        boolean hasAvatar = post.getAvatarResourceId() != 0;
+        holder.authorPhoto.setVisibility(hasAvatar ? View.VISIBLE : View.GONE);
+        holder.authorAvatar.setVisibility(hasAvatar ? View.GONE : View.VISIBLE);
+        holder.authorPhoto.setImageResource(post.getAvatarResourceId());
         holder.authorName.setText(post.getAuthorName());
         holder.postMeta.setText(getPostMeta(context, post));
+        boolean hasLocation = post.getLocationName() != null && !post.getLocationName().trim().isEmpty();
+        holder.locationLabel.setVisibility(hasLocation ? View.VISIBLE : View.GONE);
         holder.locationLabel.setText(post.getLocationName());
         holder.locationLabel.setCompoundDrawablesWithIntrinsicBounds(
                 R.drawable.ic_community_location, 0, 0, 0);
@@ -130,6 +136,7 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
         final MaterialCardView postCard;
         final TextView candidateLabel;
         final TextView authorAvatar;
+        final ImageView authorPhoto;
         final TextView authorName;
         final TextView postMeta;
         final TextView locationLabel;
@@ -144,6 +151,7 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
             postCard = itemView.findViewById(R.id.community_post_card);
             candidateLabel = itemView.findViewById(R.id.community_candidate_label);
             authorAvatar = itemView.findViewById(R.id.community_author_avatar);
+            authorPhoto = itemView.findViewById(R.id.community_author_photo);
             authorName = itemView.findViewById(R.id.community_author_name);
             postMeta = itemView.findViewById(R.id.community_post_meta);
             locationLabel = itemView.findViewById(R.id.community_location_label);

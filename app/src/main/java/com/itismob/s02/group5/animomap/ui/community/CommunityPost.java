@@ -5,6 +5,7 @@ public class CommunityPost {
     private final String id;
     private final String authorName;
     private final String authorInitials;
+    private int avatarResourceId;
     private final String studentAffiliation;
     private final String locationId;
     private final String locationName;
@@ -34,6 +35,21 @@ public class CommunityPost {
         this.commentCount = commentCount;
         this.createdAtMillis = createdAtMillis;
         this.poiCandidate = poiCandidate;
+    }
+
+    public CommunityPost(String id, String authorName, String authorInitials,
+                         String studentAffiliation, String locationId, String locationName,
+                         String title, String description, int imageResourceId,
+                         int upvoteCount, int commentCount, long createdAtMillis,
+                         boolean poiCandidate, int avatarResourceId) {
+        this(id, authorName, authorInitials, studentAffiliation, locationId, locationName,
+                title, description, imageResourceId, upvoteCount, commentCount, createdAtMillis,
+                poiCandidate);
+        this.avatarResourceId = avatarResourceId;
+    }
+
+    public int getAvatarResourceId() {
+        return avatarResourceId;
     }
 
     public String getId() {
