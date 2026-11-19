@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Colors for the review status badges on Profile (New Place Recommendations). -->
+<resources>
+    <color name="status_pending_bg">#3A3220</color>
+    <color name="status_pending_text">#F0C36B</color>
+    <color name="status_approved_bg">#173A35</color>
+    <color name="status_approved_text">#43CDBB</color>
+    <color name="status_rejected_bg">#3D2224</color>
+    <color name="status_rejected_text">#F28B82</color>
+</resources>

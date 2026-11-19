@@ -14,6 +14,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
 
 import com.google.android.material.imageview.ShapeableImageView;
 import com.itismob.s02.group5.animomap.R;
@@ -26,6 +30,8 @@ public class ProfileFragment extends Fragment {
     private ShapeableImageView ivProfilePhoto;
     private TextView tvProfileInitials, tvProfileName, tvProfileUsername, tvProfileBio, tvProfileDetails;
     private Button btnEditProfile, btnLogout;
+    private TextView tvPostsHeading, tvReviewsHeading;
+    private RecyclerView rvMyPosts, rvMyReviews;
 
     @Nullable
     @Override
@@ -47,11 +53,18 @@ public class ProfileFragment extends Fragment {
         tvProfileDetails = view.findViewById(R.id.tvProfileDetails);
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
         btnLogout = view.findViewById(R.id.btnLogout);
+        tvPostsHeading = view.findViewById(R.id.tvPostsHeading);
+        tvReviewsHeading = view.findViewById(R.id.tvReviewsHeading);
+        rvMyPosts = view.findViewById(R.id.rvMyPosts);
+        rvMyReviews = view.findViewById(R.id.rvMyReviews);
 
         // Buttons
         btnEditProfile.setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), EditProfileActivity.class)));
         btnLogout.setOnClickListener(v -> confirmLogout());
+
+        // Lists of the student's posts and reviews
+        showMyContributions();
     }
 
     @Override
@@ -88,6 +101,23 @@ public class ProfileFragment extends Fragment {
             ivProfilePhoto.setVisibility(View.VISIBLE);
             tvProfileInitials.setVisibility(View.GONE);
         }
+    }
+
+    /*
+     * MY CONTRIBUTIONS: lists the student's posts (with review status) and place reviews.
+     * Prototype: sample data from MyContributionsDataSource.
+     */
+    private void showMyContributions() {
+        List<MyPost> posts = MyContributionsDataSource.getMyPosts();
+        List<MyReview> reviews = MyContributionsDataSource.getMyReviews();
+
+        tvPostsHeading.setText(getString(R.string.profile_posts_count, posts.size()));
+        rvMyPosts.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvMyPosts.setAdapter(new MyPostAdapter(posts));
+
+        tvReviewsHeading.setText(getString(R.string.profile_reviews_count, reviews.size()));
+        rvMyReviews.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvMyReviews.setAdapter(new MyReviewAdapter(reviews));
     }
 
     /*
