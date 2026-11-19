@@ -226,8 +226,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/community_save_post"
                 android:padding="10dp"
-                android:src="@drawable/ic_community_bookmark"
-                app:tint="@color/text_secondary" />
+                android:src="@drawable/ic_community_bookmark_selector" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

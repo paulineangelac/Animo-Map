@@ -117,8 +117,6 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
                 R.string.community_comments_accessibility, post.getCommentCount()));
         boolean isSaved = savedPosts.contains(post.getId());
         holder.saveButton.setSelected(isSaved);
-        holder.saveButton.setColorFilter(context.getColor(
-                isSaved ? R.color.community_saved_icon : R.color.text_secondary));
         holder.saveButton.setContentDescription(context.getString(
                 isSaved ? R.string.community_remove_saved_post : R.string.community_save_post));
 
@@ -132,8 +130,6 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
             }
             boolean saved = savedPosts.contains(post.getId());
             holder.saveButton.setSelected(saved);
-            holder.saveButton.setColorFilter(context.getColor(
-                    saved ? R.color.community_saved_icon : R.color.text_secondary));
             holder.saveButton.setContentDescription(context.getString(
                     saved ? R.string.community_remove_saved_post : R.string.community_save_post));
         });
