@@ -716,7 +716,11 @@ public class MapFragment extends Fragment {
         selected = place;
         demo = false;
         updatingUi = true;
-        if (fromSearch) { category = place.getCategory(); filters.check(filterId()); }
+        if (fromSearch) {
+            // Rooms and indoor places are shown alone, so no category chip applies to them.
+            category = place.hasMapMarker() ? place.getCategory() : null;
+            filters.check(filterId());
+        }
         updatingUi = false;
         addRecentPlace(place);
         closeSearch();

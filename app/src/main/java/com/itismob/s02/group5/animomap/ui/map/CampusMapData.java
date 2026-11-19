@@ -3,6 +3,7 @@ package com.itismob.s02.group5.animomap.ui.map;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -78,12 +79,15 @@ public final class CampusMapData {
      * Whether a place gets a marker on the map right now. The selected place is always shown, even
      * if it normally has no marker (a room or an indoor restroom), so the user sees where it is.
      * Other places need a marker and must pass the category filter. In demo-route mode only the
-     * selected place and the route's starting building are shown.
+     * selected place and the route's starting building are shown. When the selected place is a room
+     * or indoor place (no marker of its own), it is the only place shown.
      */
     public static boolean isShownOnMap(MapPlace place, MapPlace selected,
                                        MapPlace.Category filter, boolean demo) {
         if (place == selected && place != null) { return true; }
         if (!place.hasMapMarker()) { return false; }
+        // A selected room or indoor place is shown alone, so it is not lost among other markers.
+        if (selected != null && !selected.hasMapMarker()) { return false; }
         if (demo) { return LASALLE.equals(place.getId()); }
         return filter == null || filter == place.getCategory();
     }
@@ -136,7 +140,43 @@ public final class CampusMapData {
         poi(p, "andrew_lobby", "Br. Andrew Gonzalez Hall Lobby", "Andrew Lobby", MapPlace.Category.HANGOUT,
                 14.56690, 120.99270, "Br. Andrew Gonzalez Hall",
                 "Lobby seating for waiting between classes.");
+        // PLACEHOLDER indoor places (classrooms and indoor facilities) so search by room number and
+        // building/floor display can be tested. Replace with real room data when it is collected.
+        room(p, "gokongwei", "G301", 3, MapPlace.Category.BUILDING, "Classroom");
+        room(p, "gokongwei", "G210", 2, MapPlace.Category.BUILDING, "Classroom");
+        room(p, HENRY_SY, "H305", 3, MapPlace.Category.BUILDING, "Classroom");
+        room(p, "velasco", "V204", 2, MapPlace.Category.BUILDING, "Classroom");
+        room(p, "yuchengco", "Y402", 4, MapPlace.Category.BUILDING, "Classroom");
+        room(p, "andrew", "A1102", 11, MapPlace.Category.BUILDING, "Classroom");
+        indoor(p, "henry_sy_restroom_3f", HENRY_SY, 3, MapPlace.Category.RESTROOM,
+                "Restroom", "Restroom (Henry Sy 3F)");
+        indoor(p, "gokongwei_restroom_2f", "gokongwei", 2, MapPlace.Category.RESTROOM,
+                "Restroom", "Restroom (Gokongwei 2F)");
+        indoor(p, "yuchengco_study_5f", "yuchengco", 5, MapPlace.Category.STUDY,
+                "Study Area", "Study Area (Yuchengco 5F)");
         return Collections.unmodifiableList(p);
+    }
+    /** Placeholder classroom inside a building: no marker of its own, so it sits at the building's position. */
+    private static void room(List<MapPlace> p, String buildingId, String roomNumber, int floor,
+                             MapPlace.Category category, String kind) {
+        MapPlace b = Objects.requireNonNull(findIn(p, buildingId));
+        p.add(new MapPlace(buildingId + "_" + roomNumber.toLowerCase(Locale.ROOT),
+                b.getShortLabel() + " " + roomNumber, roomNumber, kind, category,
+                b.getLatitude(), b.getLongitude(), false, b.getName(), floor, roomNumber,
+                "Placeholder " + kind.toLowerCase(Locale.ROOT) + " data."));
+    }
+    /** Placeholder indoor facility (restroom, study area) on a floor of a building, without its own marker. */
+    private static void indoor(List<MapPlace> p, String id, String buildingId, int floor,
+                               MapPlace.Category category, String label, String name) {
+        MapPlace b = Objects.requireNonNull(findIn(p, buildingId));
+        p.add(new MapPlace(id, name, label, label, category, b.getLatitude(), b.getLongitude(),
+                false, b.getName(), floor, "", "Placeholder " + label.toLowerCase(Locale.ROOT) + " data."));
+    }
+    private static MapPlace findIn(List<MapPlace> list, String id) {
+        for (MapPlace place : list) {
+            if (place.getId().equals(id)) { return place; }
+        }
+        return null;
     }
     private static void building(List<MapPlace> p, String id, String name, String label,
                                  double lat, double lng) {
