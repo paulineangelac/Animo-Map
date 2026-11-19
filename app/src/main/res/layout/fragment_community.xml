@@ -38,79 +38,61 @@
             android:src="@drawable/ic_notification" />
     </RelativeLayout>
 
-    <HorizontalScrollView
-        android:id="@+id/community_categories_scroll"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:id="@+id/community_controls"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="4dp"
-        android:fillViewport="true"
-        android:overScrollMode="never"
-        android:scrollbars="none"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/community_header">
-
-        <LinearLayout
+        <TextView
+            android:id="@+id/community_create_post"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp">
+            android:layout_height="44dp"
+            android:background="@drawable/bg_community_create_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:drawableStart="@drawable/ic_community_create"
+            android:drawablePadding="8dp"
+            android:gravity="center"
+            android:paddingHorizontal="10dp"
+            android:text="@string/community_create_post"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/category_recommended"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/bg_community_category"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:minWidth="104dp"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:accessibilityLiveRegion="polite"
-                android:text="@string/community_category_recommended"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
-            <TextView
-                android:id="@+id/category_recent"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/bg_community_category"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:minWidth="78dp"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:text="@string/community_category_recent"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/category_candidates"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_community_category"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:minWidth="112dp"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:text="@string/community_category_candidates"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-    </HorizontalScrollView>
+        <TextView
+            android:id="@+id/community_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:drawableEnd="@drawable/ic_community_expand"
+            android:drawablePadding="4dp"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="0dp"
+            android:text="@string/community_filter_recent"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+    </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/community_review_notice"
+        android:visibility="gone"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -121,7 +103,7 @@
         app:cardElevation="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/community_categories_scroll"
+        app:layout_constraintTop_toBottomOf="@id/community_controls"
         app:strokeColor="@color/border_subtle"
         app:strokeWidth="1dp">
 

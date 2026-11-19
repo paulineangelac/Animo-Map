@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text for the Profile and Edit Profile screens. Kept in its own file so it doesn't clash with strings.xml. -->
+<resources>
+    <!-- Profile -->
+    <string name="profile_edit_button">Edit profile</string>
+    <string name="profile_username_format">\@%1$s</string>
+    <string name="profile_photo_description">Profile photo</string>
+
+    <!-- Edit Profile -->
+    <string name="edit_profile_title">Edit profile</string>
+    <string name="edit_profile_back">Back to profile</string>
+    <string name="edit_profile_change_photo">Change photo</string>
+    <string name="edit_profile_school_section">School details (optional)</string>
+    <string name="edit_profile_save">Save changes</string>
+
+    <!-- Field labels and hints -->
+    <string name="label_username">Username</string>
+    <string name="hint_username">alexsantos</string>
+    <string name="username_rules">3–20 characters: lowercase letters, numbers, dots, or underscores</string>
+    <string name="label_bio">Bio</string>
+    <string name="hint_bio">Tell other students about yourself</string>
+    <string name="label_college">College</string>
+    <string name="label_major">Major</string>
+    <string name="hint_major">BS Information Systems</string>
+    <string name="label_id_number">ID number</string>
+    <string name="hint_id_number">12345678</string>
+
+    <!-- My contributions -->
+    <string name="profile_posts_count">Posts (%1$d)</string>
+    <string name="profile_reviews_count">Reviews (%1$d)</string>
+    <string name="my_item_meta">%1$s · %2$s</string>
+    <string name="status_pending">Pending review</string>
+    <string name="status_approved">Approved</string>
+    <string name="status_rejected">Rejected</string>
+
+    <!-- Other user profile -->
+    <string name="other_profile_back">Back</string>
+    <string name="other_profile_avatar_description">Profile picture</string>
+    <string name="other_profile_no_posts">No posts yet</string>
+    <!-- DLSU Manila colleges. The first item means "not chosen". -->
+    <string-array name="dlsu_colleges">
+        <item>Select your college</item>
+        <item>College of Computer Studies (CCS)</item>
+        <item>College of Liberal Arts (CLA)</item>
+        <item>College of Science (COS)</item>
+        <item>Gokongwei College of Engineering (GCOE)</item>
+        <item>Ramon V. del Rosario College of Business (RVR-COB)</item>
+        <item>School of Economics (SOE)</item>
+        <item>Br. Andrew Gonzalez FSC College of Education (BAGCED)</item>
+    </string-array>
+</resources>

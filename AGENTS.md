@@ -27,25 +27,22 @@ This is an academic project for ITISMOB (Mobile Development) at De La Salle Univ
 
 Follow the existing repository configuration. Do not change technologies, SDK versions, or project architecture without approval.
 
-### ITISMOB Course Concepts
+### Coding Standards, Code Quality & ITISMOB Course Concepts
 
-Prefer beginner-friendly implementations based on the ITISMOB course topics, in this sequence:
-
-1. Android architecture, Android Studio, project structure, and debugging.
-2. Layouts, Views, and basic UI components.
-3. Activities, lifecycle, and passing data with Intents.
-4. RecyclerView, Adapter, ViewHolder, and LayoutManager.
+All code changes must follow clean-code practices and remain consistent with the existing Android project structure. Prioritize readability, maintainability, consistent naming conventions, proper formatting, and meaningful comments.
+Prefer beginner-friendly implementations based on ITISMOB course concepts, including:
+1. Android architecture, project structure, and debugging.
+2. Layouts, Views, and UI components.
+3. Activities, lifecycle, and Intents.
+4. RecyclerView, Adapters, ViewHolders, and LayoutManagers.
 5. Options Menu, navigation, and SharedPreferences.
-6. SQLite databases and CRUD operations with SQLiteHelper.
-7. Project prototyping and UI implementation.
-8. Networking, API data, and JSON parsing.
+6. SQLite databases and CRUD operations.
+7. UI prototyping and implementation.
+8. Networking, APIs, and JSON parsing.
 
-Use more advanced technologies or external services when the project requires them, and explain their purpose and necessity. Keep code understandable and maintainable for the developers.
+Use advanced technologies or external libraries only when necessary. Avoid overengineering, unnecessary abstractions, and overly complex implementations. Keep code understandable and maintainable for all team members.
 
 ## Implementation Rules
-
-Develop incrementally, one feature at a time.
-
 - Inspect existing code before making changes.
 - Implement only the requested feature and preserve existing functionality and navigation.
 - Reuse existing classes, layouts, and components when appropriate.
@@ -54,4 +51,3 @@ Develop incrementally, one feature at a time.
 - Do not implement future features unless requested.
 - Keep implementations simple, readable, and appropriate for a beginner Android developer.
 
-Build a functional, cohesive application that follows the project requirements, design system, supplied references, and ITISMOB course concepts.

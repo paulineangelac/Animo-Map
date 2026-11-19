@@ -1,5 +1,7 @@
 package com.itismob.s02.group5.animomap.ui.community;
 
+import com.itismob.s02.group5.animomap.R;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -15,6 +17,7 @@ public final class CommunityFeedDataSource {
     public enum Category {
         RECOMMENDED,
         RECENT,
+        ALL_POSTS,
         POI_CANDIDATES
     }
 
@@ -30,7 +33,7 @@ public final class CommunityFeedDataSource {
                 "dlsu_henry_sy_sr_hall_level_6", "Henry Sy Sr. Hall · Level 6",
                 "Quiet seats near the Learning Commons",
                 "The tables beside the windows are cool, quiet, and usually open before 10 AM.",
-                0, 128, 18, now - minutes(12), false));
+                R.drawable.community_photo_placeholder, 48, 18, now - minutes(12), false, R.drawable.community_avatar_placeholder));
 
         posts.add(new CommunityPost(
                 "post_velasco_covered_benches", "Bea R.", "BR", "COS student",
@@ -44,7 +47,7 @@ public final class CommunityFeedDataSource {
                 "dlsu_gokongwei_lounge_level_3", "Gokongwei Hall · Level 3 lounge",
                 "A calm spot between afternoon classes",
                 "The lounge has a few open seats after lunch and is close to the elevators.",
-                0, 72, 7, now - minutes(54), true));
+                R.drawable.community_photo_placeholder, 72, 7, now - minutes(54), true));
 
         posts.add(new CommunityPost(
                 "post_andrew_gonzalez_study_nook", "Ana M.", "AM", "CLA student",

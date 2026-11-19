@@ -1,25 +1,37 @@
 package com.itismob.s02.group5.animomap.ui.profile;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.List;
+
+import com.google.android.material.imageview.ShapeableImageView;
 import com.itismob.s02.group5.animomap.R;
 import com.itismob.s02.group5.animomap.ui.auth.LoginActivity;
 
-/** Profile screen: shows the student's profile and lets them log out. */
+/** Profile screen: shows the student's profile, opens Edit Profile, and lets them log out. */
 public class ProfileFragment extends Fragment {
 
     // Views
-    private Button btnLogout;
+    private ShapeableImageView ivProfilePhoto;
+    private TextView tvProfileInitials, tvProfileName, tvProfileUsername, tvProfileBio, tvProfileDetails;
+    private Button btnEditProfile, btnLogout;
+    private TextView tvPostsHeading, tvReviewsHeading;
+    private RecyclerView rvMyPosts, rvMyReviews;
 
     @Nullable
     @Override
@@ -33,10 +45,79 @@ public class ProfileFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Instantiate views
+        ivProfilePhoto = view.findViewById(R.id.ivProfilePhoto);
+        tvProfileInitials = view.findViewById(R.id.tvProfileInitials);
+        tvProfileName = view.findViewById(R.id.tvProfileName);
+        tvProfileUsername = view.findViewById(R.id.tvProfileUsername);
+        tvProfileBio = view.findViewById(R.id.tvProfileBio);
+        tvProfileDetails = view.findViewById(R.id.tvProfileDetails);
+        btnEditProfile = view.findViewById(R.id.btnEditProfile);
         btnLogout = view.findViewById(R.id.btnLogout);
+        tvPostsHeading = view.findViewById(R.id.tvPostsHeading);
+        tvReviewsHeading = view.findViewById(R.id.tvReviewsHeading);
+        rvMyPosts = view.findViewById(R.id.rvMyPosts);
+        rvMyReviews = view.findViewById(R.id.rvMyReviews);
 
         // Buttons
+        btnEditProfile.setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), EditProfileActivity.class)));
         btnLogout.setOnClickListener(v -> confirmLogout());
+
+        // Lists of the student's posts and reviews
+        showMyContributions();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Runs every time Profile comes back into view, so changes saved in Edit Profile show up
+        showProfile();
+    }
+
+    /*
+     * SHOW PROFILE: fills the profile card with the saved details.
+     */
+    private void showProfile() {
+        UserProfile profile = UserProfile.load(requireContext());
+
+        tvProfileName.setText(profile.getFullName());
+        tvProfileUsername.setText(getString(R.string.profile_username_format, profile.getUsername()));
+
+        // Hide the bio and school details when they're empty
+        tvProfileBio.setText(profile.getBio());
+        tvProfileBio.setVisibility(TextUtils.isEmpty(profile.getBio()) ? View.GONE : View.VISIBLE);
+        String schoolDetails = profile.getSchoolDetails();
+        tvProfileDetails.setText(schoolDetails);
+        tvProfileDetails.setVisibility(TextUtils.isEmpty(schoolDetails) ? View.GONE : View.VISIBLE);
+
+        // Show the photo if one was picked, otherwise the initials
+        if (TextUtils.isEmpty(profile.getPhotoUri())) {
+            ivProfilePhoto.setVisibility(View.GONE);
+            tvProfileInitials.setVisibility(View.VISIBLE);
+            tvProfileInitials.setText(profile.getInitials());
+        } else {
+            ivProfilePhoto.setImageURI(null); // forces a refresh when the photo changes
+            ivProfilePhoto.setImageURI(Uri.parse(profile.getPhotoUri()));
+            ivProfilePhoto.setVisibility(View.VISIBLE);
+            tvProfileInitials.setVisibility(View.GONE);
+        }
+    }
+
+    /*
+     * MY CONTRIBUTIONS: lists the student's posts (with review status) and place reviews.
+     * Prototype: sample data from MyContributionsDataSource.
+     */
+    private void showMyContributions() {
+        List<MyPost> posts = MyContributionsDataSource.getMyPosts();
+        List<MyReview> reviews = MyContributionsDataSource.getMyReviews();
+
+        tvPostsHeading.setText(getString(R.string.profile_posts_count, posts.size()));
+        rvMyPosts.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvMyPosts.setAdapter(new MyPostAdapter(posts));
+
+        tvReviewsHeading.setText(getString(R.string.profile_reviews_count, reviews.size()));
+        rvMyReviews.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvMyReviews.setAdapter(new MyReviewAdapter(reviews));
     }
 
     /*

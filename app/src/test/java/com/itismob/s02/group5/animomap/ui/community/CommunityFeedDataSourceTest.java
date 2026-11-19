@@ -30,6 +30,17 @@ public class CommunityFeedDataSourceTest {
     }
 
     @Test
+    public void allPostsIncludesCandidatesAndUsesNewestFirst() {
+        List<CommunityPost> posts = Arrays.asList(
+                post("older", 50, 0, 100L, false),
+                post("candidate", 1, 0, 200L, true));
+        List<CommunityPost> result = CommunityFeedDataSource.getPostsForCategory(
+                posts, CommunityFeedDataSource.Category.ALL_POSTS, new HashSet<>());
+        assertEquals(2, result.size());
+        assertEquals("candidate", result.get(0).getId());
+    }
+
+    @Test
     public void recommendedCategorySortsByVoteCountThenRecency() {
         List<CommunityPost> posts = Arrays.asList(
                 post("older-popular", 20, 1, 100L, false),
