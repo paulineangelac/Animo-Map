@@ -25,6 +25,13 @@
     <string name="label_id_number">ID number</string>
     <string name="hint_id_number">12345678</string>
 
+    <!-- My contributions -->
+    <string name="profile_posts_count">Posts (%1$d)</string>
+    <string name="profile_reviews_count">Reviews (%1$d)</string>
+    <string name="my_item_meta">%1$s · %2$s</string>
+    <string name="status_pending">Pending review</string>
+    <string name="status_approved">Approved</string>
+    <string name="status_rejected">Rejected</string>
     <!-- DLSU Manila colleges. The first item means "not chosen". -->
     <string-array name="dlsu_colleges">
         <item>Select your college</item>

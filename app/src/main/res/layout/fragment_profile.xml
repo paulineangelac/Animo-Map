@@ -161,6 +161,7 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/tvPostsHeading"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
@@ -169,41 +170,16 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <com.google.android.material.card.MaterialCardView
+        <!-- The student's posts (filled by MyPostAdapter) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvMyPosts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:cardBackgroundColor="@color/surface_card"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/border_subtle"
-            app:strokeWidth="1dp">
+            android:nestedScrollingEnabled="false" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/profile_sample_post_title"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/profile_sample_post_detail"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
 
         <TextView
+            android:id="@+id/tvReviewsHeading"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -212,39 +188,12 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <com.google.android.material.card.MaterialCardView
+        <!-- The student's place reviews (filled by MyReviewAdapter) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvMyReviews"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:cardBackgroundColor="@color/surface_card"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/border_subtle"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/profile_sample_review_title"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/profile_sample_review_detail"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+            android:nestedScrollingEnabled="false" />
 
         <!-- Log out -->
         <Button
