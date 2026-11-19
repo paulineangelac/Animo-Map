@@ -118,11 +118,13 @@ public class MapFragment extends Fragment {
     private boolean suppressSearchChange;
     private OnBackPressedCallback searchBackCallback;
     private TextView title, subtitle, categoryText, notice;
-    private MaterialButton directions;
+    private MaterialButton directions, getDirections;
+    private PlaceDetailsController details;
     private ChipGroup filters, searchFilters;
     private MapPlace selected;
     private MapPlace.Category category;
     private boolean demo, updatingUi, focusRequested;
+    private int lastMaxCardHeight;
     private boolean gpsRequested, gpsUpdatesRunning, centerOnNextFix;
     private Bitmap userPinIcon;
     private final OnIndicatorPositionChangedListener positionListener = this::onGpsPosition;
@@ -170,6 +172,8 @@ public class MapFragment extends Fragment {
         categoryText = view.findViewById(R.id.tv_map_place_category);
         notice = view.findViewById(R.id.tv_map_directions_notice);
         directions = view.findViewById(R.id.btn_map_directions);
+        getDirections = view.findViewById(R.id.btn_map_get_directions);
+        details = new PlaceDetailsController(view);
         filters = view.findViewById(R.id.map_filter_group);
         if (state != null) {
             String savedCategory = state.getString("map.category");
@@ -769,6 +773,9 @@ public class MapFragment extends Fragment {
             notice.setVisibility(demo ? View.GONE : View.VISIBLE);
             directions.setVisibility(hasRoute ? View.VISIBLE : View.GONE);
             directions.setText(demo ? R.string.map_back_to_place : R.string.map_preview_demo);
+            // Get Directions is a placeholder for now: it has no action yet.
+            getDirections.setVisibility(demo ? View.GONE : View.VISIBLE);
+            details.bind(selected, !demo);
             ViewGroup.LayoutParams params = card.getLayoutParams();
             params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
             card.setLayoutParams(params);
@@ -833,6 +840,15 @@ public class MapFragment extends Fragment {
         int maxCardHeight = sideCard ? root.getHeight() - dp(16)
                 : Math.max(dp(64), Math.min((int) (root.getHeight() * .42f),
                 root.getHeight() - header.getBottom() - dp(100)));
+        // The available height changed (for example the keyboard closed): measure the card freshly.
+        if (maxCardHeight != lastMaxCardHeight) {
+            lastMaxCardHeight = maxCardHeight;
+            if (cardParams.height != ViewGroup.LayoutParams.WRAP_CONTENT) {
+                cardParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                card.setLayoutParams(cardParams);
+                return false;
+            }
+        }
         if (selected != null && card.getHeight() > maxCardHeight) {
             cardParams.height = maxCardHeight;
             card.setLayoutParams(cardParams);

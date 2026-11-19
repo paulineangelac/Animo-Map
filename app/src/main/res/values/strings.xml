@@ -69,6 +69,25 @@
     <string name="map_filter_restrooms">Restrooms</string>
     <string name="map_filter_hangout">Hangout</string>
 
+    <string name="map_get_directions">Get directions</string>
+    <string name="place_no_reviews">No reviews yet</string>
+    <plurals name="place_rating_summary">
+        <item quantity="one">★ %1$.1f · %2$d review</item>
+        <item quantity="other">★ %1$.1f · %2$d reviews</item>
+    </plurals>
+    <string name="place_your_rating">Your rating</string>
+    <string name="place_star_description">Rate %1$d out of 5 stars</string>
+    <string name="place_reviews_heading">Recent reviews</string>
+    <string name="place_no_written_reviews">No written reviews yet. Be the first!</string>
+    <string name="place_show_all_reviews">Show all %1$d reviews</string>
+    <string name="place_show_fewer_reviews">Show fewer reviews</string>
+    <string name="place_review_hint">Write a review…</string>
+    <string name="place_submit_review">Submit review</string>
+    <string name="place_review_need_rating">Choose a star rating first.</string>
+    <string name="place_review_need_text">Write a review before submitting.</string>
+    <string name="place_review_posted">Review posted</string>
+    <string name="place_review_meta">%1$s · %2$s · %3$s</string>
+
     <string name="place_type_building">Building</string>
     <string name="place_type_food">Food</string>
     <string name="place_type_restroom">Restroom</string>
