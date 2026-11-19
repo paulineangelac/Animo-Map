@@ -32,6 +32,11 @@
     <string name="status_pending">Pending review</string>
     <string name="status_approved">Approved</string>
     <string name="status_rejected">Rejected</string>
+
+    <!-- Other user profile -->
+    <string name="other_profile_back">Back</string>
+    <string name="other_profile_avatar_description">Profile picture</string>
+    <string name="other_profile_no_posts">No posts yet</string>
     <!-- DLSU Manila colleges. The first item means "not chosen". -->
     <string-array name="dlsu_colleges">
         <item>Select your college</item>
