@@ -96,12 +96,14 @@
 
     <!-- Community feed -->
     <string name="community_create_post">Create Post</string>
-    <string name="community_create_unavailable">Post creation is not available yet.</string>
     <string name="community_filter_recent">Most Recent</string>
     <string name="community_filter_relevant">Most Relevant</string>
     <string name="community_filter_all">All Posts</string>
     <string name="community_filter_candidates">POI Candidate</string>
     <string name="community_photo_placeholder">Photo placeholder</string>
+    <string name="community_photo_preview_description">Selected post photo</string>
+    <string name="community_info_symbol">i</string>
+    <string name="community_filter_option_selected">%1$s  ✓</string>
     <string name="community_avatar_description">Profile picture</string>
     <string name="community_category_recommended">Recommended</string>
     <string name="community_category_recent">Recent</string>
@@ -110,7 +112,7 @@
     <string name="community_empty_feed">No posts in this category yet.</string>
     <string name="community_post_details_unavailable">Post details are not available yet.</string>
     <string name="community_comments_unavailable">Comments are not available yet.</string>
-    <string name="community_candidate_pending">POI candidate · Map location review pending</string>
+    <string name="community_candidate_pending">POI Recommendation · Map location review pending</string>
     <string name="community_vote_count">%1$d</string>
     <string name="community_comments_count">%1$d comments</string>
     <string name="community_post_image">Student submitted campus photo</string>
@@ -119,6 +121,10 @@
     <string name="community_time_days">%1$d days ago</string>
     <string name="community_vote_accessibility">Upvote, %1$d votes</string>
     <string name="community_comments_accessibility">Comments, %1$d comments</string>
+    <string name="community_post_more">More post options</string>
+    <string name="community_share_post">Share post</string>
+    <string name="community_save_post">Save post</string>
+    <string name="community_remove_saved_post">Remove saved post</string>
 
     <!-- Groups section -->
     <string name="groups_badge_private">PRIVATE</string>

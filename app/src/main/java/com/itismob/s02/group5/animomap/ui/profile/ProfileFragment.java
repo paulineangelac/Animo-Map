@@ -22,6 +22,9 @@ import java.util.List;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.itismob.s02.group5.animomap.R;
 import com.itismob.s02.group5.animomap.ui.auth.LoginActivity;
+import com.itismob.s02.group5.animomap.ui.moderation.ModerationDataSource;
+import com.itismob.s02.group5.animomap.ui.moderation.ModeratorActivity;
+import com.itismob.s02.group5.animomap.ui.moderation.UserRole;
 
 /** Profile screen: shows the student's profile, opens Edit Profile, and lets them log out. */
 public class ProfileFragment extends Fragment {
@@ -32,6 +35,9 @@ public class ProfileFragment extends Fragment {
     private Button btnEditProfile, btnLogout;
     private TextView tvPostsHeading, tvReviewsHeading;
     private RecyclerView rvMyPosts, rvMyReviews;
+    private View cardModeratorTools;
+    private TextView tvModeratorSummary;
+    private Button btnOpenModeratorTools;
 
     @Nullable
     @Override
@@ -57,11 +63,16 @@ public class ProfileFragment extends Fragment {
         tvReviewsHeading = view.findViewById(R.id.tvReviewsHeading);
         rvMyPosts = view.findViewById(R.id.rvMyPosts);
         rvMyReviews = view.findViewById(R.id.rvMyReviews);
+        cardModeratorTools = view.findViewById(R.id.cardModeratorTools);
+        tvModeratorSummary = view.findViewById(R.id.tvModeratorSummary);
+        btnOpenModeratorTools = view.findViewById(R.id.btnOpenModeratorTools);
 
         // Buttons
         btnEditProfile.setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), EditProfileActivity.class)));
         btnLogout.setOnClickListener(v -> confirmLogout());
+        btnOpenModeratorTools.setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), ModeratorActivity.class)));
 
         // Lists of the student's posts and reviews
         showMyContributions();
@@ -72,6 +83,21 @@ public class ProfileFragment extends Fragment {
         super.onResume();
         // Runs every time Profile comes back into view, so changes saved in Edit Profile show up
         showProfile();
+        showModeratorTools();
+    }
+
+    /*
+     * MODERATOR TOOLS: only moderators see this card. It shows how many items still need review.
+     */
+    private void showModeratorTools() {
+        if (!UserRole.isModerator(requireContext())) {
+            cardModeratorTools.setVisibility(View.GONE);
+            return;
+        }
+        tvModeratorSummary.setText(getString(R.string.moderator_card_summary,
+                ModerationDataSource.countPendingRecommendations(),
+                ModerationDataSource.countOpenReports()));
+        cardModeratorTools.setVisibility(View.VISIBLE);
     }
 
     /*

@@ -3,16 +3,18 @@ package com.itismob.s02.group5.animomap.ui.community;
 import com.itismob.s02.group5.animomap.R;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Local demonstration data for the Community feed. Replace this source when a shared
  * persistence or backend layer is added.
  */
 public final class CommunityFeedDataSource {
+    // Seed once so sample timestamps and local posts stay stable across Activity recreation.
+    private static final List<CommunityPost> sessionPosts = getSamplePosts();
 
     public enum Category {
         RECOMMENDED,
@@ -22,6 +24,42 @@ public final class CommunityFeedDataSource {
     }
 
     private CommunityFeedDataSource() {
+    }
+
+    static List<CommunityPost> getSessionPosts() {
+        return new ArrayList<>(sessionPosts);
+    }
+
+    static CommunityPost findPost(String id) {
+        for (CommunityPost post : sessionPosts) {
+            if (post.getId().equals(id)) return post;
+        }
+        return null;
+    }
+
+    static CommunityPost submitPost(String author, String initials, CommunityPostType type,
+                                    String placeName, String description, PostLocation location,
+                                    List<byte[]> photos) {
+        String title = type == CommunityPostType.POI_RECOMMENDATION ? placeName : null;
+        CommunityPost post = new CommunityPost(UUID.randomUUID().toString(), author, initials,
+                type, title, description, location, photos, System.currentTimeMillis());
+        sessionPosts.add(post);
+        return post;
+    }
+
+    static String trimDraftText(String value) {
+        return value.replaceAll("^[\\s\\p{Z}]+|[\\s\\p{Z}]+$", "");
+    }
+
+    static int validateDraft(CommunityPostType type, String description, String placeName,
+                             boolean hasLocation) {
+        if (type == null) return R.string.community_require_category;
+        if (description.isEmpty()) return R.string.community_require_description;
+        if (type == CommunityPostType.POI_RECOMMENDATION) {
+            if (placeName.isEmpty()) return R.string.community_require_place_name;
+            if (!hasLocation) return R.string.community_require_location;
+        }
+        return 0;
     }
 
     public static List<CommunityPost> getSamplePosts() {
@@ -87,14 +125,14 @@ public final class CommunityFeedDataSource {
                 Long.compare(second.getCreatedAtMillis(), first.getCreatedAtMillis());
 
         if (category == Category.RECOMMENDED) {
-            Collections.sort(result, (first, second) -> {
+            result.sort((first, second) -> {
                 int voteComparison = Integer.compare(
                         getDisplayedVoteCount(second, activeUpvotes),
                         getDisplayedVoteCount(first, activeUpvotes));
                 return voteComparison != 0 ? voteComparison : byNewest.compare(first, second);
             });
         } else {
-            Collections.sort(result, byNewest);
+            result.sort(byNewest);
         }
         return result;
     }

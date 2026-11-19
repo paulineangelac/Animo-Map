@@ -5,6 +5,7 @@
     <color name="surface_card">#191E22</color>
     <color name="surface_elevated">#242A2F</color>
     <color name="border_subtle">#343B41</color>
+    <color name="community_card_border">#22282C</color>
     <color name="primary_teal">#2A6F73</color>
     <color name="accent_teal">#43CDBB</color>
     <color name="highlight_selected">#A7F7DF</color>

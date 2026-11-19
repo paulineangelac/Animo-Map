@@ -1,4 +1,4 @@
 <resources>
-    <dimen name="community_card_stroke_width">1dp</dimen>
-    <dimen name="community_candidate_stroke_width">1dp</dimen>
+    <dimen name="community_card_stroke_width">0.5dp</dimen>
+    <dimen name="community_candidate_stroke_width">0.5dp</dimen>
 </resources>
