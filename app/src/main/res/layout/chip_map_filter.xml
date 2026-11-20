@@ -9,9 +9,9 @@
     android:checkable="true"
     android:textColor="@color/map_filter_chip_text"
     android:textSize="14sp"
-    app:chipMinHeight="48dp"
+    app:chipMinHeight="36dp"
     app:checkedIconVisible="false"
     app:chipBackgroundColor="@color/map_filter_chip_background"
-    app:chipCornerRadius="18dp"
+    app:chipCornerRadius="24dp"
     app:chipStrokeColor="@color/map_filter_chip_stroke"
     app:chipStrokeWidth="0dp" />

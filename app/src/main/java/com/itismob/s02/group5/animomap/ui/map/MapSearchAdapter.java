@@ -57,6 +57,9 @@ public class MapSearchAdapter extends RecyclerView.Adapter<MapSearchAdapter.Plac
         holder.name.setText(place.getName());
         Context context = holder.itemView.getContext();
         String categoryName = context.getString(MapPlace.categoryLabelRes(place.getCategory()));
+        if (place.isHotspot()) {
+            categoryName = context.getString(R.string.place_hotspot_category, categoryName);
+        }
         String location = place.getLocationLine();
         // "Restroom · Henry Sy Sr. Hall · Floor 3", or just "Building" when there is nothing more to say.
         holder.subtitle.setText(location.equals(categoryName) ? categoryName
@@ -67,7 +70,7 @@ public class MapSearchAdapter extends RecyclerView.Adapter<MapSearchAdapter.Plac
             holder.icon.setContentDescription(context.getString(R.string.map_recent_place_description));
         } else {
             // Search results show the category symbol so places can be told apart at a glance.
-            holder.icon.setImageResource(MapPlace.glyphRes(place.getCategory()));
+            holder.icon.setImageResource(MapPlace.glyphRes(place));
             ImageViewCompat.setImageTintList(holder.icon, ColorStateList.valueOf(
                     ContextCompat.getColor(context, R.color.accent_teal)));
             holder.icon.setContentDescription(categoryName);

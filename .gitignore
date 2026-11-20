@@ -23,3 +23,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+.agents
+.claude
+.codex
+.impeccable

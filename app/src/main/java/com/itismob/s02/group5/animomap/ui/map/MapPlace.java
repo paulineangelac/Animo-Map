@@ -11,6 +11,8 @@ public final class MapPlace {
     private final Category category;
     private final double latitude, longitude;
     private final boolean mapMarker;
+    // Hotspot places get a flame marker and a "Hotspot" label (MCO2: one fixed sample hotspot).
+    private final boolean hotspot;
     // Optional details. Empty string / 0 means "not set".
     private final String building, room, description;
     private final int floor;
@@ -27,6 +29,14 @@ public final class MapPlace {
                     Category category, double latitude, double longitude,
                     boolean mapMarker, String building, int floor, String room,
                     String description) {
+        this(id, name, shortLabel, subtitle, category, latitude, longitude, mapMarker,
+                building, floor, room, description, false);
+    }
+    public MapPlace(String id, String name, String shortLabel, String subtitle,
+                    Category category, double latitude, double longitude,
+                    boolean mapMarker, String building, int floor, String room,
+                    String description, boolean hotspot) {
+        this.hotspot = hotspot;
         this.id = id;
         this.name = name;
         this.shortLabel = shortLabel;
@@ -58,6 +68,12 @@ public final class MapPlace {
     /** Room number such as "G301", or "" when this place is not a room. */
     public String getRoom() { return room; }
     public String getDescription() { return description; }
+    /** True when this place is labelled a Hotspot on the map. */
+    public boolean isHotspot() { return hotspot; }
+    /** Marker symbol for a place: the flame for hotspots, otherwise its category symbol. */
+    public static int glyphRes(MapPlace place) {
+        return place.hotspot ? R.drawable.ic_marker_hotspot : glyphRes(place.category);
+    }
 
     /** Short "Building · Floor" text for search results and the place card. */
     public String getLocationLine() {

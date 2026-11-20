@@ -82,7 +82,7 @@ import com.mapbox.maps.plugin.locationcomponent.LocationComponentUtils;
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,12 +116,14 @@ public class MapFragment extends Fragment {
     private RecentPlaces recentPlaces = new RecentPlaces();
     private boolean suppressSearchChange;
     private OnBackPressedCallback searchBackCallback;
-    private TextView title, subtitle, categoryText, notice;
-    private MaterialButton directions;
+    private TextView title, subtitle, categoryText, hotspotNote;
+    private MaterialButton directions, getDirections;
+    private PlaceDetailsController details;
     private ChipGroup filters, searchFilters;
     private MapPlace selected;
     private MapPlace.Category category;
     private boolean demo, updatingUi, focusRequested;
+    private int lastMaxCardHeight;
     private boolean gpsRequested, gpsUpdatesRunning, centerOnNextFix;
     private Bitmap userPinIcon;
     private final OnIndicatorPositionChangedListener positionListener = this::onGpsPosition;
@@ -167,8 +169,11 @@ public class MapFragment extends Fragment {
         ViewCompat.setAccessibilityHeading(title, true);
         subtitle = view.findViewById(R.id.tv_map_place_subtitle);
         categoryText = view.findViewById(R.id.tv_map_place_category);
-        notice = view.findViewById(R.id.tv_map_directions_notice);
+        hotspotNote = view.findViewById(R.id.tv_map_place_hotspot_note);
         directions = view.findViewById(R.id.btn_map_directions);
+        getDirections = view.findViewById(R.id.btn_map_get_directions);
+        details = new PlaceDetailsController(view);
+        details.setOnContentChangedListener(this::resetCardHeight);
         filters = view.findViewById(R.id.map_filter_group);
         if (state != null) {
             String savedCategory = state.getString("map.category");
@@ -377,10 +382,10 @@ public class MapFragment extends Fragment {
     }
 
     /** Round badge with a symbol per category, so places can be told apart without relying on colour. */
-    private Bitmap markerIcon(MapPlace.Category value, boolean isSelected) {
-        String key = value.name() + isSelected;
+    private Bitmap markerIcon(MapPlace.Category value, boolean isSelected, boolean isHotspot) {
+        String key = value.name() + isSelected + isHotspot;
         return markerIcons.computeIfAbsent(key,
-                unused -> CampusMarkerIcons.create(requireContext(), value, isSelected));
+                unused -> CampusMarkerIcons.create(requireContext(), value, isSelected, isHotspot));
     }
     private int markerSizeDp(MapPlace.Category value, boolean isSelected) {
         return CampusMarkerIcons.sizeDp(value, isSelected);
@@ -395,8 +400,8 @@ public class MapFragment extends Fragment {
             List<Point> points = new ArrayList<>();
             for (double[] p : CampusMapData.getDemoRoutePoints()) { points.add(Point.fromLngLat(p[1], p[0])); }
             routeLine.create(new PolylineAnnotationOptions().withPoints(points)
-                    .withLineColor(ContextCompat.getColor(requireContext(), R.color.highlight_selected))
-                    .withLineWidth(5.0));
+                    .withLineColor(ContextCompat.getColor(requireContext(), R.color.accent_teal))
+                    .withLineWidth(6.0));
         }
         List<MapPlace> shown = new ArrayList<>();
         for (MapPlace place : CampusMapData.getPlaces()) {
@@ -409,8 +414,11 @@ public class MapFragment extends Fragment {
             boolean isSelected = place == selected;
             options.add(new PointAnnotationOptions()
                     .withPoint(Point.fromLngLat(place.getLongitude(), place.getLatitude()))
-                    .withIconImage(markerIcon(place.getCategory(), isSelected))
-                    .withTextField(place.getShortLabel())
+                    .withIconImage(markerIcon(place.getCategory(), isSelected, place.isHotspot()))
+                    // Hotspots carry a "Hotspot" label so they stand out from ordinary markers.
+                    .withTextField(place.isHotspot()
+                            ? getString(R.string.place_hotspot_marker_label, place.getShortLabel())
+                            : place.getShortLabel())
                     .withTextSize(12.0)
                     .withTextColor(labelColor)
                     .withTextHaloColor(haloColor)
@@ -509,6 +517,8 @@ public class MapFragment extends Fragment {
         LocationComponentPlugin location = LocationComponentUtils.getLocationComponent(mapView);
         if (running) {
             location.setLocationPuck(LocationComponentUtils.createDefault2DPuck(true));
+            // The "you are here" pulse is teal, not the default blue.
+            location.setPulsingColor(ContextCompat.getColor(requireContext(), R.color.accent_teal));
             location.setEnabled(true);
             location.addOnIndicatorPositionChangedListener(positionListener);
         } else {
@@ -563,7 +573,8 @@ public class MapFragment extends Fragment {
         Canvas canvas = new Canvas(bitmap);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         float r = w / 2f;
-        paint.setColor(ContextCompat.getColor(requireContext(), R.color.highlight_selected));
+        // White pin with a teal dot: clearly "you", and different from the selected-place ring.
+        paint.setColor(ContextCompat.getColor(requireContext(), R.color.text_primary));
         Path drop = new Path();
         drop.addCircle(r, r, r, Path.Direction.CW);
         drop.moveTo(r * 0.25f, r * 1.6f);
@@ -571,8 +582,8 @@ public class MapFragment extends Fragment {
         drop.lineTo(r * 1.75f, r * 1.6f);
         drop.close();
         canvas.drawPath(drop, paint);
-        paint.setColor(ContextCompat.getColor(requireContext(), R.color.bg_primary));
-        canvas.drawCircle(r, r, r * 0.4f, paint);
+        paint.setColor(ContextCompat.getColor(requireContext(), R.color.primary_teal));
+        canvas.drawCircle(r, r, r * 0.45f, paint);
         userPinIcon = bitmap;
         return bitmap;
     }
@@ -589,6 +600,10 @@ public class MapFragment extends Fragment {
         updateSearchResults("");
         view.findViewById(R.id.map_search_card).setOnClickListener(v -> openSearch());
         searchPrompt.setOnClickListener(v -> openSearch());
+        view.findViewById(R.id.btn_map_search_set_location).setOnClickListener(v -> {
+            closeSearch();
+            showLocationPicker();
+        });
         closeSearchButton.setOnClickListener(v -> closeSearch());
         search.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
@@ -611,9 +626,10 @@ public class MapFragment extends Fragment {
         searchFilters = view.findViewById(R.id.map_search_filter_group);
         addSearchChip(R.string.map_filter_all, null);
         addSearchChip(R.string.map_filter_buildings, MapPlace.Category.BUILDING);
+        // Same order as the filter row on the map, so both lists read alike.
+        addSearchChip(R.string.map_filter_study, MapPlace.Category.STUDY);
         addSearchChip(R.string.map_filter_food, MapPlace.Category.FOOD);
         addSearchChip(R.string.map_filter_restrooms, MapPlace.Category.RESTROOM);
-        addSearchChip(R.string.map_filter_study, MapPlace.Category.STUDY);
         addSearchChip(R.string.map_filter_hangout, MapPlace.Category.HANGOUT);
         syncSearchChips();
         searchFilters.setOnCheckedStateChangeListener((group, ids) -> {
@@ -695,7 +711,7 @@ public class MapFragment extends Fragment {
         }
         if (!recents) {
             // Best matches first; places that rank the same keep their list order.
-            Collections.sort(matches, (a, b) -> a.searchRank(query) - b.searchRank(query));
+            matches.sort(Comparator.comparingInt(place -> place.searchRank(query)));
         }
         searchHeading.setText(recents ? R.string.map_search_recent_heading
                 : R.string.map_search_results_heading);
@@ -712,7 +728,11 @@ public class MapFragment extends Fragment {
         selected = place;
         demo = false;
         updatingUi = true;
-        if (fromSearch) { category = place.getCategory(); filters.check(filterId()); }
+        if (fromSearch) {
+            // Rooms and indoor places are shown alone, so no category chip applies to them.
+            category = place.hasMapMarker() ? place.getCategory() : null;
+            filters.check(filterId());
+        }
         updatingUi = false;
         addRecentPlace(place);
         closeSearch();
@@ -748,25 +768,41 @@ public class MapFragment extends Fragment {
         searchPrompt.setText(selected == null ? getString(R.string.map_search_landing_label)
                 : selected.getName());
         card.setVisibility(selected == null ? View.GONE : View.VISIBLE);
+        // Filters only matter while browsing; hiding them gives a selected place more map.
+        root.findViewById(R.id.map_filter_scroll).setVisibility(selected == null ? View.VISIBLE : View.GONE);
         updateBackCallbacks();
         if (selected != null) {
-            categoryText.setText(demo ? R.string.map_demo_notice
-                    : MapPlace.categoryLabelRes(selected.getCategory()));
+            if (demo) {
+                categoryText.setText(R.string.map_demo_notice);
+            } else if (selected.isHotspot()) {
+                categoryText.setText(getString(R.string.place_hotspot_category,
+                        getString(MapPlace.categoryLabelRes(selected.getCategory()))));
+            } else {
+                categoryText.setText(MapPlace.categoryLabelRes(selected.getCategory()));
+            }
             title.setText(demo ? getString(R.string.map_demo_title) : selected.getName());
             String locationLine = selected.getLocationLine();
             subtitle.setText(demo ? getString(R.string.map_demo_subtitle) : locationLine);
             subtitle.setVisibility(!demo && "Building".equals(locationLine) ? View.GONE : View.VISIBLE);
             boolean hasRoute = CampusMapData.hasDemoRoute(selected.getId());
-            notice.setText(hasRoute ? R.string.map_demo_notice : R.string.map_unmapped);
-            notice.setVisibility(demo ? View.GONE : View.VISIBLE);
+            hotspotNote.setVisibility(selected.isHotspot() && !demo ? View.VISIBLE : View.GONE);
             directions.setVisibility(hasRoute ? View.VISIBLE : View.GONE);
             directions.setText(demo ? R.string.map_back_to_place : R.string.map_preview_demo);
-            ViewGroup.LayoutParams params = card.getLayoutParams();
-            params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-            card.setLayoutParams(params);
+            // Directions is a disabled placeholder for now: it has no action yet.
+            getDirections.setVisibility(demo ? View.GONE : View.VISIBLE);
+            details.bind(selected, !demo);
+            resetCardHeight();
             ScrollView body = card.findViewById(R.id.map_place_scroll);
             body.scrollTo(0, 0);
         }
+        root.requestLayout();
+    }
+
+    /** Lets the place card measure itself again, so it grows or shrinks with its content. */
+    private void resetCardHeight() {
+        ViewGroup.LayoutParams params = card.getLayoutParams();
+        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        card.setLayoutParams(params);
         root.requestLayout();
     }
 
@@ -778,14 +814,14 @@ public class MapFragment extends Fragment {
         int orientation = landscape ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL;
         if (headerLayout.getOrientation() != orientation) {
             headerLayout.setOrientation(orientation);
-            headerLayout.setPadding(dp(16), dp(landscape ? 4 : 16),
-                    dp(16), dp(landscape ? 4 : 16));
+            headerLayout.setPadding(dp(16), dp(landscape ? 4 : 8),
+                    dp(16), dp(landscape ? 4 : 8));
             LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(
-                    landscape ? 0 : ViewGroup.LayoutParams.MATCH_PARENT, dp(58), landscape ? .55f : 0);
+                    landscape ? 0 : ViewGroup.LayoutParams.MATCH_PARENT, dp(52), landscape ? .55f : 0);
             LinearLayout.LayoutParams filterParams = new LinearLayout.LayoutParams(
                     landscape ? 0 : ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT, landscape ? .45f : 0);
-            filterParams.topMargin = landscape ? 0 : dp(8);
+            filterParams.topMargin = landscape ? 0 : dp(4);
             filterParams.setMarginStart(landscape ? dp(8) : 0);
             root.findViewById(R.id.map_search_card).setLayoutParams(searchParams);
             root.findViewById(R.id.map_filter_scroll).setLayoutParams(filterParams);
@@ -825,6 +861,15 @@ public class MapFragment extends Fragment {
         int maxCardHeight = sideCard ? root.getHeight() - dp(16)
                 : Math.max(dp(64), Math.min((int) (root.getHeight() * .42f),
                 root.getHeight() - header.getBottom() - dp(100)));
+        // The available height changed (for example the keyboard closed): measure the card freshly.
+        if (maxCardHeight != lastMaxCardHeight) {
+            lastMaxCardHeight = maxCardHeight;
+            if (cardParams.height != ViewGroup.LayoutParams.WRAP_CONTENT) {
+                cardParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                card.setLayoutParams(cardParams);
+                return false;
+            }
+        }
         if (selected != null && card.getHeight() > maxCardHeight) {
             cardParams.height = maxCardHeight;
             card.setLayoutParams(cardParams);
