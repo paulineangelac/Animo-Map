@@ -16,6 +16,12 @@ public final class CampusMarkerIcons {
     private CampusMarkerIcons() { }
 
     public static Bitmap create(Context context, MapPlace.Category category, boolean selected) {
+        return create(context, category, selected, false);
+    }
+
+    /** A hotspot uses the flame symbol instead of its category symbol. */
+    public static Bitmap create(Context context, MapPlace.Category category, boolean selected,
+                                boolean hotspot) {
         float density = context.getResources().getDisplayMetrics().density;
         int size = Math.round(sizeDp(category, selected) * density);
         boolean building = category == MapPlace.Category.BUILDING;
@@ -32,7 +38,8 @@ public final class CampusMarkerIcons {
         paint.setColor(accent);
         paint.setStrokeWidth(stroke);
         canvas.drawCircle(center, center, center - stroke / 2f, paint);
-        Drawable glyph = ContextCompat.getDrawable(context, MapPlace.glyphRes(category));
+        Drawable glyph = ContextCompat.getDrawable(context,
+                hotspot ? R.drawable.ic_marker_hotspot : MapPlace.glyphRes(category));
         if (glyph != null) {
             glyph = DrawableCompat.wrap(glyph.mutate());
             DrawableCompat.setTint(glyph, accent);

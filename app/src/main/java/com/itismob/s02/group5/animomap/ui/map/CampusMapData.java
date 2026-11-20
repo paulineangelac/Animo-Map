@@ -140,6 +140,11 @@ public final class CampusMapData {
         poi(p, "andrew_lobby", "Br. Andrew Gonzalez Hall Lobby", "Andrew Lobby", MapPlace.Category.HANGOUT,
                 14.56690, 120.99270, "Br. Andrew Gonzalez Hall",
                 "Lobby seating for waiting between classes.");
+        // MCO2: one fixed sample hotspot between Br. Connon Hall and St. La Salle Hall.
+        // Real hotspots (places with recent upvotes and reviews) come in a later milestone.
+        p.add(new MapPlace("sample_hotspot", "Plaza Hangout Spot", "Plaza", "Between Connon and La Salle",
+                MapPlace.Category.HANGOUT, 14.56418, 120.99359, true, "", 0, "",
+                "A popular spot where students gather between classes.", true));
         // PLACEHOLDER indoor places (classrooms and indoor facilities) so search by room number and
         // building/floor display can be tested. Replace with real room data when it is collected.
         room(p, "gokongwei", "G301", 3, MapPlace.Category.BUILDING, "Classroom");

@@ -93,6 +93,11 @@
     <string name="place_type_restroom">Restroom</string>
     <string name="place_type_study">Study area</string>
     <string name="place_type_hangout">Waiting / hangout area</string>
+    <string name="place_hotspot_label">Hotspot</string>
+    <!-- Marker text for a hotspot, e.g. "Hotspot: Plaza" -->
+    <string name="place_hotspot_marker_label">Hotspot: %1$s</string>
+    <!-- Place card category line for a hotspot, e.g. "Hotspot · Waiting / hangout area" -->
+    <string name="place_hotspot_category">Hotspot · %1$s</string>
 
     <!-- Community feed -->
     <string name="community_create_post">Create Post</string>

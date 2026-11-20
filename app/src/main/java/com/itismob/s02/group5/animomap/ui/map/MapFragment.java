@@ -381,10 +381,10 @@ public class MapFragment extends Fragment {
     }
 
     /** Round badge with a symbol per category, so places can be told apart without relying on colour. */
-    private Bitmap markerIcon(MapPlace.Category value, boolean isSelected) {
-        String key = value.name() + isSelected;
+    private Bitmap markerIcon(MapPlace.Category value, boolean isSelected, boolean isHotspot) {
+        String key = value.name() + isSelected + isHotspot;
         return markerIcons.computeIfAbsent(key,
-                unused -> CampusMarkerIcons.create(requireContext(), value, isSelected));
+                unused -> CampusMarkerIcons.create(requireContext(), value, isSelected, isHotspot));
     }
     private int markerSizeDp(MapPlace.Category value, boolean isSelected) {
         return CampusMarkerIcons.sizeDp(value, isSelected);
@@ -413,8 +413,11 @@ public class MapFragment extends Fragment {
             boolean isSelected = place == selected;
             options.add(new PointAnnotationOptions()
                     .withPoint(Point.fromLngLat(place.getLongitude(), place.getLatitude()))
-                    .withIconImage(markerIcon(place.getCategory(), isSelected))
-                    .withTextField(place.getShortLabel())
+                    .withIconImage(markerIcon(place.getCategory(), isSelected, place.isHotspot()))
+                    // Hotspots carry a "Hotspot" label so they stand out from ordinary markers.
+                    .withTextField(place.isHotspot()
+                            ? getString(R.string.place_hotspot_marker_label, place.getShortLabel())
+                            : place.getShortLabel())
                     .withTextSize(12.0)
                     .withTextColor(labelColor)
                     .withTextHaloColor(haloColor)
@@ -758,8 +761,14 @@ public class MapFragment extends Fragment {
         card.setVisibility(selected == null ? View.GONE : View.VISIBLE);
         updateBackCallbacks();
         if (selected != null) {
-            categoryText.setText(demo ? R.string.map_demo_notice
-                    : MapPlace.categoryLabelRes(selected.getCategory()));
+            if (demo) {
+                categoryText.setText(R.string.map_demo_notice);
+            } else if (selected.isHotspot()) {
+                categoryText.setText(getString(R.string.place_hotspot_category,
+                        getString(MapPlace.categoryLabelRes(selected.getCategory()))));
+            } else {
+                categoryText.setText(MapPlace.categoryLabelRes(selected.getCategory()));
+            }
             title.setText(demo ? getString(R.string.map_demo_title) : selected.getName());
             String locationLine = selected.getLocationLine();
             subtitle.setText(demo ? getString(R.string.map_demo_subtitle) : locationLine);

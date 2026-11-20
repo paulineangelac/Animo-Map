@@ -18,8 +18,19 @@ public class CampusMapDataTest {
                     onCampus(place.getLatitude(), place.getLongitude()));
             assertFalse(place.getName().isEmpty());
         }
-        assertEquals(30, ids.size());
+        assertEquals(31, ids.size());
         assertTrue(onCampus(CampusMapData.CENTER_LAT, CampusMapData.CENTER_LNG));
+    }
+    @Test public void exactlyOneFixedSampleHotspotWithAMapMarker() {
+        int hotspots = 0;
+        for (MapPlace place : CampusMapData.getPlaces()) {
+            if (place.isHotspot()) {
+                hotspots++;
+                assertTrue(place.hasMapMarker());
+            }
+        }
+        assertEquals(1, hotspots);
+        assertTrue(CampusMapData.findPlace("sample_hotspot").isHotspot());
     }
     @Test public void everyCategoryHasAtLeastOneMarkerPlace() {
         for (MapPlace.Category category : MapPlace.Category.values()) {
