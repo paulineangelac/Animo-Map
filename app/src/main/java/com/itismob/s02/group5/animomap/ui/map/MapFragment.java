@@ -116,7 +116,7 @@ public class MapFragment extends Fragment {
     private RecentPlaces recentPlaces = new RecentPlaces();
     private boolean suppressSearchChange;
     private OnBackPressedCallback searchBackCallback;
-    private TextView title, subtitle, categoryText, notice;
+    private TextView title, subtitle, categoryText;
     private MaterialButton directions, getDirections;
     private PlaceDetailsController details;
     private ChipGroup filters, searchFilters;
@@ -169,7 +169,6 @@ public class MapFragment extends Fragment {
         ViewCompat.setAccessibilityHeading(title, true);
         subtitle = view.findViewById(R.id.tv_map_place_subtitle);
         categoryText = view.findViewById(R.id.tv_map_place_category);
-        notice = view.findViewById(R.id.tv_map_directions_notice);
         directions = view.findViewById(R.id.btn_map_directions);
         getDirections = view.findViewById(R.id.btn_map_get_directions);
         details = new PlaceDetailsController(view);
@@ -775,11 +774,9 @@ public class MapFragment extends Fragment {
             subtitle.setText(demo ? getString(R.string.map_demo_subtitle) : locationLine);
             subtitle.setVisibility(!demo && "Building".equals(locationLine) ? View.GONE : View.VISIBLE);
             boolean hasRoute = CampusMapData.hasDemoRoute(selected.getId());
-            notice.setText(hasRoute ? R.string.map_demo_notice : R.string.map_unmapped);
-            notice.setVisibility(demo ? View.GONE : View.VISIBLE);
             directions.setVisibility(hasRoute ? View.VISIBLE : View.GONE);
             directions.setText(demo ? R.string.map_back_to_place : R.string.map_preview_demo);
-            // Get Directions is a placeholder for now: it has no action yet.
+            // Directions is a disabled placeholder for now: it has no action yet.
             getDirections.setVisibility(demo ? View.GONE : View.VISIBLE);
             details.bind(selected, !demo);
             resetCardHeight();
