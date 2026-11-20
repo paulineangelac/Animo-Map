@@ -626,9 +626,10 @@ public class MapFragment extends Fragment {
         searchFilters = view.findViewById(R.id.map_search_filter_group);
         addSearchChip(R.string.map_filter_all, null);
         addSearchChip(R.string.map_filter_buildings, MapPlace.Category.BUILDING);
+        // Same order as the filter row on the map, so both lists read alike.
+        addSearchChip(R.string.map_filter_study, MapPlace.Category.STUDY);
         addSearchChip(R.string.map_filter_food, MapPlace.Category.FOOD);
         addSearchChip(R.string.map_filter_restrooms, MapPlace.Category.RESTROOM);
-        addSearchChip(R.string.map_filter_study, MapPlace.Category.STUDY);
         addSearchChip(R.string.map_filter_hangout, MapPlace.Category.HANGOUT);
         syncSearchChips();
         searchFilters.setOnCheckedStateChangeListener((group, ids) -> {
