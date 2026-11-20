@@ -24,7 +24,7 @@
             android:stateListAnimator="@null"
             app:cardBackgroundColor="@color/surface_card"
             app:cardCornerRadius="26dp"
-            app:cardElevation="4dp"
+            app:cardElevation="0dp"
             app:strokeWidth="0dp">
             <LinearLayout
                 android:layout_width="match_parent"
@@ -315,6 +315,15 @@
                         android:textSize="14sp"
                         android:textStyle="bold" />
                     <!-- Not wired up yet: shown disabled, and the label says why. -->
+                    <TextView
+                        android:id="@+id/tv_map_place_hotspot_note"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/place_hotspot_note"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_map_get_directions"
                         android:layout_width="match_parent"
@@ -455,18 +464,18 @@
                 android:layout_weight="1"
                 android:maxLines="1"
                 android:ellipsize="end"
-                android:text="@string/map_search_landing_label"
+                android:text="@string/map_search_title"
                 android:textColor="@color/text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
             <ImageButton
                 android:id="@+id/btn_close_map_search"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/map_close_search"
-                android:padding="10dp"
+                android:padding="12dp"
                 android:src="@drawable/ic_map_close"
                 app:tint="@color/text_secondary" />
         </LinearLayout>
@@ -528,6 +537,22 @@
                 app:selectionRequired="true"
                 app:chipSpacingHorizontal="6dp" />
         </HorizontalScrollView>
+
+        <!-- Manual location was only reachable by long-pressing the location button. -->
+        <TextView
+            android:id="@+id/btn_map_search_set_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:drawablePadding="12dp"
+            app:drawableStartCompat="@drawable/ic_map_my_location"
+            app:drawableTint="@color/accent_teal"
+            android:gravity="center_vertical"
+            android:minHeight="48dp"
+            android:text="@string/map_set_my_location"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/tv_map_search_results_heading"

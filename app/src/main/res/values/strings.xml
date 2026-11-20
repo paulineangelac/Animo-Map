@@ -32,11 +32,13 @@
     <string name="placeholder_groups">Groups screen placeholder. Private groups and presence sharing coming soon.</string>
 
     <!-- Map search, filters, and illustrative prototype data -->
-    <string name="map_search_hint">What are you looking for?</string>
+    <string name="map_search_hint">Building, room, or place</string>
+    <string name="map_search_title">Search campus</string>
+    <string name="map_set_my_location">Set my location</string>
     <string name="map_search_landing_label">Search buildings, rooms, or places</string>
     <string name="map_search_recent_heading">Recently searched</string>
     <string name="map_search_results_heading">Search results</string>
-    <string name="map_search_empty">No matching places found.</string>
+    <string name="map_search_empty">No matching places found. Try a building name or a different filter.</string>
     <string name="map_search_no_recent">No recent places yet. Try a building name or room number.</string>
     <string name="map_close_search">Close search</string>
     <string name="map_voice_search_description">Voice search</string>
@@ -96,7 +98,8 @@
     <string name="place_type_food">Food</string>
     <string name="place_type_restroom">Restroom</string>
     <string name="place_type_study">Study area</string>
-    <string name="place_type_hangout">Waiting / hangout area</string>
+    <string name="place_type_hangout">Hangout area</string>
+    <string name="place_hotspot_note">A hotspot is a popular place on campus.</string>
     <string name="place_hotspot_label">Hotspot</string>
     <!-- Marker text for a hotspot, e.g. "Hotspot: Plaza" -->
     <string name="place_hotspot_marker_label">Hotspot: %1$s</string>

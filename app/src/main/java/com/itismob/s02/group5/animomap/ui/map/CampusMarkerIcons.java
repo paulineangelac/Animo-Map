@@ -33,8 +33,10 @@ public final class CampusMarkerIcons {
         paint.setColor(ContextCompat.getColor(context, R.color.surface_card));
         canvas.drawCircle(center, center, center, paint);
         paint.setStyle(Paint.Style.STROKE);
-        int accent = ContextCompat.getColor(context,
-                selected ? R.color.highlight_selected : R.color.accent_teal);
+        // Hotspots are the only warm marker; everything else stays teal.
+        int accentRes = hotspot ? R.color.hotspot_amber
+                : (selected ? R.color.highlight_selected : R.color.accent_teal);
+        int accent = ContextCompat.getColor(context, accentRes);
         paint.setColor(accent);
         paint.setStrokeWidth(stroke);
         canvas.drawCircle(center, center, center - stroke / 2f, paint);
@@ -51,7 +53,7 @@ public final class CampusMarkerIcons {
     }
 
     public static int sizeDp(MapPlace.Category category, boolean selected) {
-        if (category == MapPlace.Category.BUILDING) return selected ? 36 : 24;
+        if (category == MapPlace.Category.BUILDING) return selected ? 40 : 28;
         return selected ? 42 : 32;
     }
 

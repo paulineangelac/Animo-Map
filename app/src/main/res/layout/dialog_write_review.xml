@@ -28,7 +28,7 @@
         android:id="@+id/et_review_dialog"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_dialog_input"
+        android:background="@drawable/bg_dialog_input_borderless"
         android:gravity="top|start"
         android:hint="@string/place_review_hint"
         android:importantForAutofill="no"

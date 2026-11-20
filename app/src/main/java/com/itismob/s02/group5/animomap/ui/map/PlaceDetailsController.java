@@ -5,6 +5,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,7 +31,7 @@ public class PlaceDetailsController {
     private final TextView description, ratingSummary, reviewsEmpty, reviewsToggle, detailsToggle;
     private final View detailsGroup;
     private final LinearLayout starsRow, reviewsList;
-    private final TextView[] starViews = new TextView[5];
+    private final ImageView[] starViews = new ImageView[5];
     private MapPlace place;
     private boolean detailsOpen;
     private boolean expanded;
@@ -98,13 +99,14 @@ public class PlaceDetailsController {
     }
 
     private void createStarButtons() {
-        int size = (int) (48 * context.getResources().getDisplayMetrics().density);
+        float density = context.getResources().getDisplayMetrics().density;
+        int size = (int) (48 * density);
+        int padding = (int) (10 * density);
         for (int i = 0; i < starViews.length; i++) {
             final int stars = i + 1;
-            TextView star = new TextView(context);
+            ImageView star = new ImageView(context);
             star.setLayoutParams(new LinearLayout.LayoutParams(size, size));
-            star.setGravity(android.view.Gravity.CENTER);
-            star.setTextSize(26);
+            star.setPadding(padding, padding, padding, padding);
             star.setContentDescription(context.getString(R.string.place_star_description, stars));
             star.setBackgroundResource(android.R.color.transparent);
             star.setOnClickListener(view -> {
@@ -136,8 +138,8 @@ public class PlaceDetailsController {
         int empty = ContextCompat.getColor(context, R.color.text_secondary);
         for (int i = 0; i < starViews.length; i++) {
             boolean isFilled = i < mine;
-            starViews[i].setText(isFilled ? "★" : "☆");
-            starViews[i].setTextColor(isFilled ? filled : empty);
+            starViews[i].setImageResource(isFilled ? R.drawable.ic_star_filled : R.drawable.ic_star_outline);
+            starViews[i].setColorFilter(isFilled ? filled : empty);
         }
     }
 

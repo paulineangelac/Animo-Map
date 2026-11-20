@@ -12,6 +12,8 @@
     <color name="text_primary">#F0F3F4</color>
     <color name="text_secondary">#9AA4AA</color>
     <color name="nav_active_indicator">#263B3B</color>
+    <!-- Warm accent used only for hotspots, so they stand out from the teal map. -->
+    <color name="hotspot_amber">#F2A84B</color>
 
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>

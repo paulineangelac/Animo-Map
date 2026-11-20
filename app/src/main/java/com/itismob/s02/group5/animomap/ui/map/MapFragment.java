@@ -116,7 +116,7 @@ public class MapFragment extends Fragment {
     private RecentPlaces recentPlaces = new RecentPlaces();
     private boolean suppressSearchChange;
     private OnBackPressedCallback searchBackCallback;
-    private TextView title, subtitle, categoryText;
+    private TextView title, subtitle, categoryText, hotspotNote;
     private MaterialButton directions, getDirections;
     private PlaceDetailsController details;
     private ChipGroup filters, searchFilters;
@@ -169,6 +169,7 @@ public class MapFragment extends Fragment {
         ViewCompat.setAccessibilityHeading(title, true);
         subtitle = view.findViewById(R.id.tv_map_place_subtitle);
         categoryText = view.findViewById(R.id.tv_map_place_category);
+        hotspotNote = view.findViewById(R.id.tv_map_place_hotspot_note);
         directions = view.findViewById(R.id.btn_map_directions);
         getDirections = view.findViewById(R.id.btn_map_get_directions);
         details = new PlaceDetailsController(view);
@@ -399,8 +400,8 @@ public class MapFragment extends Fragment {
             List<Point> points = new ArrayList<>();
             for (double[] p : CampusMapData.getDemoRoutePoints()) { points.add(Point.fromLngLat(p[1], p[0])); }
             routeLine.create(new PolylineAnnotationOptions().withPoints(points)
-                    .withLineColor(ContextCompat.getColor(requireContext(), R.color.highlight_selected))
-                    .withLineWidth(5.0));
+                    .withLineColor(ContextCompat.getColor(requireContext(), R.color.accent_teal))
+                    .withLineWidth(6.0));
         }
         List<MapPlace> shown = new ArrayList<>();
         for (MapPlace place : CampusMapData.getPlaces()) {
@@ -516,6 +517,8 @@ public class MapFragment extends Fragment {
         LocationComponentPlugin location = LocationComponentUtils.getLocationComponent(mapView);
         if (running) {
             location.setLocationPuck(LocationComponentUtils.createDefault2DPuck(true));
+            // The "you are here" pulse is teal, not the default blue.
+            location.setPulsingColor(ContextCompat.getColor(requireContext(), R.color.accent_teal));
             location.setEnabled(true);
             location.addOnIndicatorPositionChangedListener(positionListener);
         } else {
@@ -570,7 +573,8 @@ public class MapFragment extends Fragment {
         Canvas canvas = new Canvas(bitmap);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         float r = w / 2f;
-        paint.setColor(ContextCompat.getColor(requireContext(), R.color.highlight_selected));
+        // White pin with a teal dot: clearly "you", and different from the selected-place ring.
+        paint.setColor(ContextCompat.getColor(requireContext(), R.color.text_primary));
         Path drop = new Path();
         drop.addCircle(r, r, r, Path.Direction.CW);
         drop.moveTo(r * 0.25f, r * 1.6f);
@@ -578,8 +582,8 @@ public class MapFragment extends Fragment {
         drop.lineTo(r * 1.75f, r * 1.6f);
         drop.close();
         canvas.drawPath(drop, paint);
-        paint.setColor(ContextCompat.getColor(requireContext(), R.color.bg_primary));
-        canvas.drawCircle(r, r, r * 0.4f, paint);
+        paint.setColor(ContextCompat.getColor(requireContext(), R.color.primary_teal));
+        canvas.drawCircle(r, r, r * 0.45f, paint);
         userPinIcon = bitmap;
         return bitmap;
     }
@@ -596,6 +600,10 @@ public class MapFragment extends Fragment {
         updateSearchResults("");
         view.findViewById(R.id.map_search_card).setOnClickListener(v -> openSearch());
         searchPrompt.setOnClickListener(v -> openSearch());
+        view.findViewById(R.id.btn_map_search_set_location).setOnClickListener(v -> {
+            closeSearch();
+            showLocationPicker();
+        });
         closeSearchButton.setOnClickListener(v -> closeSearch());
         search.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
@@ -774,6 +782,7 @@ public class MapFragment extends Fragment {
             subtitle.setText(demo ? getString(R.string.map_demo_subtitle) : locationLine);
             subtitle.setVisibility(!demo && "Building".equals(locationLine) ? View.GONE : View.VISIBLE);
             boolean hasRoute = CampusMapData.hasDemoRoute(selected.getId());
+            hotspotNote.setVisibility(selected.isHotspot() && !demo ? View.VISIBLE : View.GONE);
             directions.setVisibility(hasRoute ? View.VISIBLE : View.GONE);
             directions.setText(demo ? R.string.map_back_to_place : R.string.map_preview_demo);
             // Directions is a disabled placeholder for now: it has no action yet.
