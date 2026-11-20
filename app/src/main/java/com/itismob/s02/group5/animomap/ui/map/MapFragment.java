@@ -82,7 +82,7 @@ import com.mapbox.maps.plugin.locationcomponent.LocationComponentUtils;
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -173,6 +173,7 @@ public class MapFragment extends Fragment {
         directions = view.findViewById(R.id.btn_map_directions);
         getDirections = view.findViewById(R.id.btn_map_get_directions);
         details = new PlaceDetailsController(view);
+        details.setOnContentChangedListener(this::resetCardHeight);
         filters = view.findViewById(R.id.map_filter_group);
         if (state != null) {
             String savedCategory = state.getString("map.category");
@@ -702,7 +703,7 @@ public class MapFragment extends Fragment {
         }
         if (!recents) {
             // Best matches first; places that rank the same keep their list order.
-            Collections.sort(matches, (a, b) -> a.searchRank(query) - b.searchRank(query));
+            matches.sort(Comparator.comparingInt(place -> place.searchRank(query)));
         }
         searchHeading.setText(recents ? R.string.map_search_recent_heading
                 : R.string.map_search_results_heading);
@@ -781,12 +782,18 @@ public class MapFragment extends Fragment {
             // Get Directions is a placeholder for now: it has no action yet.
             getDirections.setVisibility(demo ? View.GONE : View.VISIBLE);
             details.bind(selected, !demo);
-            ViewGroup.LayoutParams params = card.getLayoutParams();
-            params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-            card.setLayoutParams(params);
+            resetCardHeight();
             ScrollView body = card.findViewById(R.id.map_place_scroll);
             body.scrollTo(0, 0);
         }
+        root.requestLayout();
+    }
+
+    /** Lets the place card measure itself again, so it grows or shrinks with its content. */
+    private void resetCardHeight() {
+        ViewGroup.LayoutParams params = card.getLayoutParams();
+        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        card.setLayoutParams(params);
         root.requestLayout();
     }
 

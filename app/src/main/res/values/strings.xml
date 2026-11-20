@@ -87,6 +87,11 @@
     <string name="place_review_need_text">Write a review before submitting.</string>
     <string name="place_review_posted">Review posted</string>
     <string name="place_review_meta">%1$s · %2$s · %3$s</string>
+    <string name="place_details_show">Details and reviews</string>
+    <string name="place_details_hide">Hide details</string>
+    <string name="place_write_review">Write a review</string>
+    <string name="place_review_dialog_title">Review %1$s</string>
+    <string name="place_review_dialog_rating">Your rating: %1$d out of 5 stars</string>
 
     <string name="place_type_building">Building</string>
     <string name="place_type_food">Food</string>

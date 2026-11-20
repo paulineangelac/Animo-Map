@@ -307,13 +307,6 @@
                         android:textColor="@color/text_secondary"
                         android:textSize="14sp" />
                     <TextView
-                        android:id="@+id/tv_map_place_description"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp" />
-                    <TextView
                         android:id="@+id/tv_map_place_rating"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -346,11 +339,30 @@
                         android:text="@string/map_preview_demo"
                         android:textColor="@color/text_primary"
                         app:backgroundTint="@color/primary_teal" />
-                    <LinearLayout
-                        android:id="@+id/map_place_feedback"
+                    <!-- Everything below the toggle stays hidden until the student asks for it. -->
+                    <TextView
+                        android:id="@+id/tv_map_details_toggle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:layout_marginTop="4dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:minHeight="48dp"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <LinearLayout
+                        android:id="@+id/map_place_expanded"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+                        <TextView
+                            android:id="@+id/tv_map_place_description"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp" />
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -396,31 +408,16 @@
                             android:textColor="@color/accent_teal"
                             android:textSize="14sp"
                             android:textStyle="bold" />
-                        <EditText
-                            android:id="@+id/et_map_review"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:background="@drawable/bg_dialog_input"
-                            android:gravity="top|start"
-                            android:hint="@string/place_review_hint"
-                            android:importantForAutofill="no"
-                            android:inputType="textMultiLine|textCapSentences"
-                            android:maxLength="300"
-                            android:minLines="2"
-                            android:padding="12dp"
-                            android:textColor="@color/text_primary"
-                            android:textColorHint="@color/text_secondary"
-                            android:textSize="14sp" />
+                        <!-- Secondary action: neutral graphite, so Directions stays the one teal button. -->
                         <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btn_map_submit_review"
+                            android:id="@+id/btn_map_write_review"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:minHeight="48dp"
                             android:layout_marginTop="8dp"
-                            android:text="@string/place_submit_review"
+                            android:text="@string/place_write_review"
                             android:textColor="@color/text_primary"
-                            app:backgroundTint="@color/primary_teal" />
+                            app:backgroundTint="@color/surface_elevated" />
                     </LinearLayout>
                 </LinearLayout>
             </ScrollView>
