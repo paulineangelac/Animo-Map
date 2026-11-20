@@ -767,6 +767,8 @@ public class MapFragment extends Fragment {
         searchPrompt.setText(selected == null ? getString(R.string.map_search_landing_label)
                 : selected.getName());
         card.setVisibility(selected == null ? View.GONE : View.VISIBLE);
+        // Filters only matter while browsing; hiding them gives a selected place more map.
+        root.findViewById(R.id.map_filter_scroll).setVisibility(selected == null ? View.VISIBLE : View.GONE);
         updateBackCallbacks();
         if (selected != null) {
             if (demo) {
@@ -811,14 +813,14 @@ public class MapFragment extends Fragment {
         int orientation = landscape ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL;
         if (headerLayout.getOrientation() != orientation) {
             headerLayout.setOrientation(orientation);
-            headerLayout.setPadding(dp(16), dp(landscape ? 4 : 16),
-                    dp(16), dp(landscape ? 4 : 16));
+            headerLayout.setPadding(dp(16), dp(landscape ? 4 : 8),
+                    dp(16), dp(landscape ? 4 : 8));
             LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(
-                    landscape ? 0 : ViewGroup.LayoutParams.MATCH_PARENT, dp(58), landscape ? .55f : 0);
+                    landscape ? 0 : ViewGroup.LayoutParams.MATCH_PARENT, dp(52), landscape ? .55f : 0);
             LinearLayout.LayoutParams filterParams = new LinearLayout.LayoutParams(
                     landscape ? 0 : ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT, landscape ? .45f : 0);
-            filterParams.topMargin = landscape ? 0 : dp(8);
+            filterParams.topMargin = landscape ? 0 : dp(4);
             filterParams.setMarginStart(landscape ? dp(8) : 0);
             root.findViewById(R.id.map_search_card).setLayoutParams(searchParams);
             root.findViewById(R.id.map_filter_scroll).setLayoutParams(filterParams);

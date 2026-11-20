@@ -15,12 +15,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
         android:elevation="4dp">
         <com.google.android.material.card.MaterialCardView
             android:id="@id/map_search_card"
             android:layout_width="match_parent"
-            android:layout_height="58dp"
+            android:layout_height="52dp"
             android:stateListAnimator="@null"
             app:cardBackgroundColor="@color/surface_card"
             app:cardCornerRadius="26dp"
@@ -68,7 +71,7 @@
             android:id="@id/map_filter_scroll"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:scrollbars="none">
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/map_filter_group"
