@@ -15,6 +15,12 @@
     <!-- Warm accent used only for hotspots, so they stand out from the teal map. -->
     <color name="hotspot_amber">#F2A84B</color>
 
+    <!-- One hue per place category, so markers can be told apart at a glance. Buildings stay teal. -->
+    <color name="marker_food">#F27C8D</color>
+    <color name="marker_restroom">#5BB8F2</color>
+    <color name="marker_study">#A98BF5</color>
+    <color name="marker_hangout">#8FD35A</color>
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

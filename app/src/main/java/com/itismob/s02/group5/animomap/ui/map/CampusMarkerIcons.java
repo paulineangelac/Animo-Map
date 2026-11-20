@@ -3,10 +3,12 @@ package com.itismob.s02.group5.animomap.ui.map;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.itismob.s02.group5.animomap.R;
@@ -33,10 +35,10 @@ public final class CampusMarkerIcons {
         paint.setColor(ContextCompat.getColor(context, R.color.surface_card));
         canvas.drawCircle(center, center, center, paint);
         paint.setStyle(Paint.Style.STROKE);
-        // Hotspots are the only warm marker; everything else stays teal.
-        int accentRes = hotspot ? R.color.hotspot_amber
-                : (selected ? R.color.highlight_selected : R.color.accent_teal);
-        int accent = ContextCompat.getColor(context, accentRes);
+        // Each category has its own colour; hotspots are the only amber marker.
+        int base = ContextCompat.getColor(context, hotspot ? R.color.hotspot_amber : colorRes(category));
+        // A selected marker is a lighter tint of its own colour, and larger.
+        int accent = selected ? ColorUtils.blendARGB(base, Color.WHITE, 0.4f) : base;
         paint.setColor(accent);
         paint.setStrokeWidth(stroke);
         canvas.drawCircle(center, center, center - stroke / 2f, paint);
@@ -50,6 +52,17 @@ public final class CampusMarkerIcons {
             glyph.draw(canvas);
         }
         return bitmap;
+    }
+
+    /** The colour that identifies a category on the map. */
+    private static int colorRes(MapPlace.Category category) {
+        switch (category) {
+            case FOOD: return R.color.marker_food;
+            case RESTROOM: return R.color.marker_restroom;
+            case STUDY: return R.color.marker_study;
+            case HANGOUT: return R.color.marker_hangout;
+            default: return R.color.accent_teal;
+        }
     }
 
     public static int sizeDp(MapPlace.Category category, boolean selected) {
