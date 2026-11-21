@@ -226,15 +226,21 @@ public class MapFragment extends Fragment {
             focusRequested = true;
         });
         getDirections.setOnClickListener(button -> {
-            routingMode = !routingMode;
-            demo = false;
-            if (routingMode) {
-                selectedRouteIndex = 0;
-                MapPlace origin = getRouteOrigin();
-                currentRouteOptions = CampusRoutePlanner.getRouteOptions(origin, selected);
+            if (!routingMode) {
+                showRouteOriginPicker(() -> {
+                    routingMode = true;
+                    demo = false;
+                    selectedRouteIndex = 0;
+                    MapPlace origin = getRouteOrigin();
+                    currentRouteOptions = CampusRoutePlanner.getRouteOptions(origin, selected);
+                    render();
+                    focusRequested = true;
+                });
+            } else {
+                routingMode = false;
+                render();
+                focusRequested = true;
             }
-            render();
-            focusRequested = true;
         });
         backCallback = new OnBackPressedCallback(false) {
             @Override public void handleOnBackPressed() {
@@ -671,6 +677,22 @@ public class MapFragment extends Fragment {
             });
         }
         dialog.show();
+    }
+    private void showRouteOriginPicker(Runnable onSelected) {
+        List<MapPlace> buildings = new ArrayList<>();
+        for (MapPlace place : CampusMapData.getPlaces()) {
+            if (place.getCategory() == MapPlace.Category.BUILDING) { buildings.add(place); }
+        }
+        String[] names = new String[buildings.size()];
+        for (int i = 0; i < names.length; i++) { names[i] = buildings.get(i).getName(); }
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.map_location_picker_title)
+                .setItems(names, (d, which) -> {
+                    setManualLocation(buildings.get(which));
+                    onSelected.run();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
     private void setManualLocation(MapPlace building) {
         stopGps();
