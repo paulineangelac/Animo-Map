@@ -183,6 +183,11 @@ public class MapFragment extends Fragment {
             selected = CampusMapData.findPlace(state.getString("map.selected"));
             demo = state.getBoolean("map.demo") && selected != null
                     && CampusMapData.hasDemoRoute(selected.getId());
+            routingMode = state.getBoolean("map.routing_mode");
+            selectedRouteIndex = state.getInt("map.selected_route_index", 0);
+            if (routingMode && selected != null) {
+                currentRouteOptions = CampusRoutePlanner.getRouteOptions(getRouteOrigin(), selected);
+            }
             cameraToRestore = state.getDoubleArray("map.camera");
             gpsRequested = state.getBoolean("map.gps");
             centerOnNextFix = state.getBoolean("map.center_on_next_fix");
