@@ -331,11 +331,11 @@
                         android:id="@+id/btn_map_get_directions"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:enabled="false"
+                        android:enabled="true"
                         android:minHeight="48dp"
                         android:layout_marginTop="12dp"
                         android:text="@string/map_get_directions"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/text_primary"
                         app:backgroundTint="@color/surface_elevated" />
                     <LinearLayout
                         android:id="@+id/map_route_options_container"
