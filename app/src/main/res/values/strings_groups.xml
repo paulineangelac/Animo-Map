@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text for My Groups, Create/Join Group, and Group Details. -->
+<resources>
+
+    <!-- My Groups -->
+    <plurals name="groups_member_count">
+        <item quantity="one">%d member</item>
+        <item quantity="other">%d members</item>
+    </plurals>
+    <string name="groups_presence_summary">%1$d on campus · updated %2$s</string>
+    <string name="groups_presence_none">No one is sharing right now</string>
+    <string name="groups_empty_title">No groups yet</string>
+    <string name="groups_empty_message">Create a group and share its invite code, or join one with a code from a friend.</string>
+    <string name="groups_subtitle_sharing_all">Sharing %1$s with all your groups.</string>
+    <string name="groups_subtitle_sharing_one">Sharing %1$s with %2$s.</string>
+    <string name="groups_sharing_turned_off">Location sharing turned off.</string>
+    <string name="groups_sharing_turned_on">Now sharing %1$s.</string>
+    <string name="groups_open_group_description">Open %1$s</string>
+
+    <!-- Time since a presence update -->
+    <string name="groups_updated_just_now">just now</string>
+
+    <!-- Choose who can see my location dialog -->
+    <string name="groups_dialog_audience_subtitle">Group members only see your building and when it was last updated.</string>
+    <string name="groups_audience_off">Off (private)</string>
+    <string name="groups_audience_all">All my groups</string>
+    <string name="groups_audience_one">%1$s only</string>
+    <string name="groups_label_building">Building you\'re in</string>
+    <string name="groups_building_prompt">Choose a building</string>
+    <string name="groups_error_choose_building">Choose the building you\'re in to start sharing.</string>
+
+    <!-- Create group dialog -->
+    <string name="groups_dialog_create_subtitle">Groups are invite-only. You\'ll get a code to share with friends.</string>
+    <string name="groups_label_group_name">Group name</string>
+    <string name="groups_label_description">Description (optional)</string>
+    <string name="groups_dialog_description_hint">What is this group for?</string>
+    <string name="groups_error_name_too_short">Group names need at least 3 characters.</string>
+    <string name="groups_error_name_too_long">Group names can be up to 40 characters.</string>
+    <string name="groups_error_name_taken">You already have a group with this name.</string>
+    <string name="groups_error_description_too_long">Descriptions can be up to 120 characters.</string>
+
+    <!-- Join group dialog -->
+    <string name="groups_dialog_join_subtitle">Enter the 6-character invite code from a group member.</string>
+    <string name="groups_dialog_join_hint">e.g. K7Q2MX</string>
+    <string name="groups_error_empty_code">Enter an invite code.</string>
+    <string name="groups_error_invalid_code">Invite codes have 6 letters or numbers.</string>
+    <string name="groups_error_code_not_found">No group uses this code. Check it with the person who invited you.</string>
+    <string name="groups_error_already_member">You\'re already in %1$s.</string>
+    <string name="groups_joined_success">You joined %1$s.</string>
+
+    <!-- Group Details -->
+    <string name="group_details_title">Group</string>
+    <string name="group_details_back">Back</string>
+    <string name="group_details_not_found">This group could not be found.</string>
+    <string name="group_details_meta_by_you">%1$s · Created by you</string>
+    <string name="group_details_meta_by_other">%1$s · Created by %2$s</string>
+    <string name="group_details_invite_label">Invite code</string>
+    <string name="group_details_invite_help">Only people with this code can join. Share it with friends you want in the group.</string>
+    <string name="group_details_copy">Copy code</string>
+    <string name="group_details_share">Share</string>
+    <string name="group_details_copied">Invite code copied.</string>
+    <string name="group_details_share_message">Join my group \"%1$s\" on Animo Map with the invite code %2$s.</string>
+    <string name="group_details_share_chooser">Share invite code</string>
+    <string name="group_details_sharing_on">You\'re sharing %1$s with this group.</string>
+    <string name="group_details_sharing_off">You\'re not sharing your location with this group. You can change this on the Groups tab.</string>
+    <string name="group_details_members_header">Members (%1$d)</string>
+    <string name="group_details_privacy_note">Members only see a campus building and when it was last updated. Exact rooms, floors, routes, and location history are never shown.</string>
+
+    <!-- Member rows -->
+    <string name="group_member_you">%1$s (You)</string>
+    <string name="group_member_presence">%1$s · Updated %2$s</string>
+    <string name="group_member_not_sharing">Not sharing their location</string>
+    <string name="group_member_avatar_description">Profile picture of %1$s</string>
+</resources>
