@@ -39,6 +39,7 @@ import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.action.ViewActions.swipeLeft;
 import static androidx.test.espresso.action.ViewActions.swipeRight;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isChecked;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom;
 import static androidx.test.espresso.matcher.ViewMatchers.hasDescendant;
@@ -48,6 +49,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -64,7 +66,11 @@ public class CreateCommunityPostTest {
             waitFor(withId(R.id.create_post_submit));
             onView(withId(R.id.create_post_submit)).perform(click());
             onView(withText(R.string.community_require_category)).check(matches(isDisplayed()));
-            onView(withText(R.string.community_type_poi)).perform(click());
+            onView(withId(R.id.create_post_type_poi)).perform(click()).check(matches(isChecked()));
+            onView(withId(R.id.create_post_place_name)).check(matches(isDisplayed()));
+            onView(withId(R.id.create_post_type_updates)).perform(click()).check(matches(isChecked()));
+            onView(withId(R.id.create_post_place_name)).check(matches(not(isDisplayed())));
+            onView(withId(R.id.create_post_type_poi)).perform(click());
             onView(withId(R.id.create_post_place_name)).perform(replaceText("A new study nook"));
             onView(withId(R.id.create_post_description))
                     .perform(click(), replaceText("Two quiet tables."));
@@ -84,10 +90,18 @@ public class CreateCommunityPostTest {
             waitFor(withText("A new study nook"));
             onView(withText("A new study nook")).check(matches(isDisplayed()));
 
+            onView(withId(R.id.navigation_groups)).perform(click());
+            onView(withId(R.id.navigation_community)).perform(click());
+            onView(withText("A new study nook")).check(matches(isDisplayed()));
+
             scenario.recreate();
             onView(withText("A new study nook")).check(matches(isDisplayed()));
             onView(withId(R.id.community_filter)).perform(click());
+            onView(withContentDescription("Most Recent, selected")).check(matches(isDisplayed()));
+            onView(withText(R.string.community_filter_relevant)).check(matches(isDisplayed()));
+            onView(withText(R.string.community_filter_all)).check(matches(isDisplayed()));
             onView(withText(R.string.community_filter_candidates)).perform(click());
+            onView(withId(R.id.community_filter)).check(matches(withText(R.string.community_filter_candidates)));
             onView(withText("A new study nook")).check(matches(isDisplayed()));
         }
     }
@@ -113,7 +127,7 @@ public class CreateCommunityPostTest {
     }
 
     @Test
-    public void importedPhotosSurviveDraftRecreationAndPageThroughTheFeedAndViewer() throws IOException {
+    public void importedPhotosSurviveDraftRecreationAndOpenFromFeedAndDetails() throws IOException {
         File first = photoFixture(Color.GREEN);
         File second = photoFixture(Color.BLUE);
         try (ActivityScenario<CreateCommunityPostActivity> scenario =
@@ -132,6 +146,7 @@ public class CreateCommunityPostTest {
             waitFor(withContentDescription("Photo 2 of 2"));
             scenario.recreate();
             waitFor(withContentDescription("Photo 2 of 2"));
+            onView(withId(R.id.create_post_type_updates)).check(matches(isChecked()));
             onView(withId(R.id.create_post_description)).check(matches(withText("A post with two photos.")));
             onView(withId(R.id.create_post_submit)).perform(click());
             assertEquals(Activity.RESULT_OK, scenario.getResult().getResultCode());
@@ -156,6 +171,16 @@ public class CreateCommunityPostTest {
             pressBack();
             waitFor(withText("A post with two photos."));
             onView(withText("A post with two photos.")).check(matches(isDisplayed()));
+
+            onView(withText("A post with two photos.")).perform(click());
+            waitFor(withId(R.id.details_post_description));
+            onView(withId(R.id.community_post_photos)).perform(swipeLeft());
+            waitFor(allOf(withId(R.id.community_post_photo_count), withText("2 / 2")));
+            onView(withId(R.id.community_post_photos)).perform(click());
+            waitFor(allOf(withId(R.id.community_viewer_count), withText("2 / 2")));
+            pressBack();
+            waitFor(withId(R.id.details_post_description));
+            onView(withId(R.id.details_post_description)).check(matches(isDisplayed()));
         }
     }
 

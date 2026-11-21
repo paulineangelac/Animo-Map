@@ -10,6 +10,15 @@
         <item name="android:src">@drawable/ic_auth_back</item>
         <item name="android:contentDescription">@string/community_back</item>
     </style>
+    <style name="CommunityCategoryChip">
+        <item name="android:checkable">true</item>
+        <item name="android:saveEnabled">false</item>
+        <item name="android:textColor">@color/community_chip_text</item>
+        <item name="checkedIconVisible">false</item>
+        <item name="chipBackgroundColor">@color/community_chip_background</item>
+        <item name="chipStrokeWidth">0dp</item>
+        <item name="ensureMinTouchTargetSize">true</item>
+    </style>
     <style name="CommunityComposerInput">
         <item name="android:background">@drawable/bg_community_dropdown</item>
         <item name="android:padding">12dp</item>

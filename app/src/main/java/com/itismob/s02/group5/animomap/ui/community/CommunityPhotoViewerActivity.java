@@ -1,5 +1,7 @@
 package com.itismob.s02.group5.animomap.ui.community;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -17,6 +19,13 @@ public class CommunityPhotoViewerActivity extends AppCompatActivity {
     static final String EXTRA_PHOTO_INDEX = "community.viewer.photo_index";
 
     private int currentIndex;
+
+    static void open(Context context, CommunityPost post, int photoIndex) {
+        Intent intent = new Intent(context, CommunityPhotoViewerActivity.class)
+                .putExtra(EXTRA_POST_ID, post.getId())
+                .putExtra(EXTRA_PHOTO_INDEX, photoIndex);
+        context.startActivity(intent);
+    }
 
     @Override
     protected void onCreate(Bundle state) {

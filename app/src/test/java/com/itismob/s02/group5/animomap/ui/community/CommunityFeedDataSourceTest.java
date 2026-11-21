@@ -14,7 +14,9 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 public class CommunityFeedDataSourceTest {
@@ -55,6 +57,119 @@ public class CommunityFeedDataSourceTest {
         assertEquals(0, post.getCommentCount());
         assertEquals(CampusMapData.LASALLE, post.getLocation().placeId);
         assertEquals(initialPlaceCount, CampusMapData.getPlaces().size());
+    }
+
+    @Test
+    public void sampleAndSessionSnapshotsKeepTheSameUniqueSeedPosts() {
+        List<CommunityPost> samples = CommunityFeedDataSource.getSamplePosts();
+        List<CommunityPost> session = CommunityFeedDataSource.getSessionPosts();
+        assertFalse(samples.isEmpty());
+        Set<String> postIds = new HashSet<>();
+        Set<String> authorIds = new HashSet<>();
+        for (int i = 0; i < samples.size(); i++) {
+            CommunityPost sample = samples.get(i);
+            assertTrue(postIds.add(sample.getId()));
+            assertTrue(authorIds.add(sample.getAuthorId()));
+            assertSame(sample, session.get(i));
+            assertSame(sample, CommunityFeedDataSource.findPost(sample.getId()));
+        }
+
+        List<CommunityPost> secondRead = CommunityFeedDataSource.getSamplePosts();
+        assertEquals(samples, secondRead);
+        secondRead.clear();
+        session.clear();
+        assertEquals(samples, CommunityFeedDataSource.getSamplePosts());
+        assertEquals(samples.get(0), CommunityFeedDataSource.getSessionPosts().get(0));
+    }
+
+    @Test
+    public void newPostsHaveDifferentIdsAndShareTheComposerAuthor() {
+        List<CommunityPost> samples = CommunityFeedDataSource.getSamplePosts();
+        byte[] photo = {1, 2, 3};
+        CommunityPost first = CommunityFeedDataSource.submitPost("@alexsantos", "AS",
+                CommunityPostType.CAMPUS_TIPS, "", "Bring an umbrella.", null,
+                Collections.singletonList(photo));
+        CommunityPost second = CommunityFeedDataSource.submitPost("@alexsantos", "AS",
+                CommunityPostType.GENERAL_DISCUSSION, "", "How was your day?", null,
+                Collections.emptyList());
+
+        assertNotEquals(first.getId(), second.getId());
+        assertNotNull(first.getAuthorId());
+        assertEquals(first.getAuthorId(), second.getAuthorId());
+        assertSame(first, CommunityFeedDataSource.findPost(first.getId()));
+        assertTrue(CommunityFeedDataSource.getSessionPosts().contains(second));
+        assertSame(photo, first.getPhotos().get(0));
+        assertEquals(CommunityPost.MapReviewStatus.NOT_APPLICABLE, second.getMapReviewStatus());
+        for (CommunityPost sample : samples) {
+            assertNotEquals(sample.getAuthorId(), first.getAuthorId());
+        }
+        assertEquals(samples, CommunityFeedDataSource.getSamplePosts());
+    }
+
+    @Test
+    public void commentsUpdateOnlyTheirPostAndAreReturnedNewestFirst() {
+        CommunityPost first = submitDiscussion();
+        CommunityPost second = submitDiscussion();
+
+        assertTrue(CommunityFeedDataSource.addComment(first.getId(), "Alex Santos",
+                "alexsantos", "AS", null, "  First comment.  "));
+        assertTrue(CommunityFeedDataSource.addComment(first.getId(), "Alex Santos",
+                "alexsantos", "AS", null, "Second comment."));
+
+        List<CommunityComment> comments = CommunityFeedDataSource.getComments(first.getId());
+        assertEquals(2, comments.size());
+        assertEquals("Second comment.", comments.get(0).text);
+        assertEquals("First comment.", comments.get(1).text);
+        assertEquals("alexsantos", comments.get(0).username);
+        assertEquals(2, CommunityFeedDataSource.findPost(first.getId()).getCommentCount());
+        assertEquals(0, second.getCommentCount());
+        assertTrue(CommunityFeedDataSource.getComments(second.getId()).isEmpty());
+        comments.clear();
+        assertEquals(2, CommunityFeedDataSource.getComments(first.getId()).size());
+    }
+
+    @Test
+    public void blankCommentsAndUnknownPostsDoNotChangeCounts() {
+        CommunityPost post = submitDiscussion();
+        assertFalse(CommunityFeedDataSource.addComment(post.getId(), "Alex Santos",
+                "alexsantos", "AS", null, "\u00a0 \t\n"));
+        assertFalse(CommunityFeedDataSource.addComment("missing-post", "Alex Santos",
+                "alexsantos", "AS", null, "A valid comment."));
+        assertEquals(0, post.getCommentCount());
+        assertTrue(CommunityFeedDataSource.getComments(post.getId()).isEmpty());
+        assertTrue(CommunityFeedDataSource.getComments("missing-post").isEmpty());
+    }
+
+    @Test
+    public void sampleCountsMatchTheirExistingCommentRows() {
+        List<Integer> expectedCounts = Arrays.asList(18, 11, 7, 5, 3, 2);
+        List<CommunityPost> posts = CommunityFeedDataSource.getSamplePosts();
+        assertEquals(expectedCounts.size(), posts.size());
+        for (int i = 0; i < posts.size(); i++) {
+            CommunityPost post = posts.get(i);
+            assertEquals(expectedCounts.get(i).intValue(), post.getCommentCount());
+            assertEquals(post.getCommentCount(),
+                    CommunityFeedDataSource.getComments(post.getId()).size());
+        }
+    }
+
+    @Test
+    public void sharedVoteCountMatchesFeedSortingAndCanBeReset() {
+        CommunityPost upvoted = submitDiscussion();
+        CommunityPost other = submitDiscussion();
+        CommunityFeedDataSource.toggleUpvote(upvoted);
+        try {
+            List<CommunityPost> relevant = CommunityFeedDataSource.getVisiblePosts(
+                    CommunityFeedDataSource.Category.RECOMMENDED);
+            assertTrue(relevant.indexOf(upvoted) < relevant.indexOf(other));
+            assertTrue(CommunityFeedDataSource.isUpvoted(upvoted));
+            assertEquals(1, CommunityFeedDataSource.getDisplayedVoteCount(
+                    CommunityFeedDataSource.findPost(upvoted.getId())));
+            assertEquals(0, CommunityFeedDataSource.getDisplayedVoteCount(other));
+        } finally {
+            CommunityFeedDataSource.toggleUpvote(upvoted);
+        }
+        assertEquals(0, CommunityFeedDataSource.getDisplayedVoteCount(upvoted));
     }
 
     @Test
@@ -139,6 +254,12 @@ public class CommunityFeedDataSourceTest {
                 posts, CommunityFeedDataSource.Category.POI_CANDIDATES, new HashSet<>());
 
         assertTrue(result.isEmpty());
+    }
+
+    private CommunityPost submitDiscussion() {
+        return CommunityFeedDataSource.submitPost("@alexsantos", "AS",
+                CommunityPostType.GENERAL_DISCUSSION, "", "Test discussion.",
+                null, Collections.emptyList());
     }
 
     private CommunityPost post(String id, int votes, int comments, long createdAt,

@@ -1,7 +1,6 @@
 package com.itismob.s02.group5.animomap.ui.community;
 
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -18,22 +17,17 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.snackbar.Snackbar;
 import com.itismob.s02.group5.animomap.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
 
 public class CreateCommunityPostActivity extends AppCompatActivity {
     static final String EXTRA_POST_ID = "community.post_id";
     private static final String STATE_TYPE = "post_type";
-
-    private final EnumMap<CommunityPostType, Integer> chipIds =
-            new EnumMap<>(CommunityPostType.class);
 
     private View root;
     private View poiHelper;
@@ -43,7 +37,6 @@ public class CreateCommunityPostActivity extends AppCompatActivity {
     private View locationPreview;
     private LinearLayout photoPreviews;
     private HorizontalScrollView photoScroll;
-    private ChipGroup categoryChips;
     private DraftPhotoViewModel draftPhotos;
     private CommunityPostType postType;
     private PostLocation location;
@@ -83,7 +76,6 @@ public class CreateCommunityPostActivity extends AppCompatActivity {
         photoScroll = findViewById(R.id.create_post_photo_scroll);
         locationPreview = findViewById(R.id.create_post_location_preview);
         locationLabel = findViewById(R.id.create_post_location_label);
-        categoryChips = findViewById(R.id.create_post_categories);
         draftPhotos = new ViewModelProvider(this).get(DraftPhotoViewModel.class);
 
         if (state != null) {
@@ -119,33 +111,12 @@ public class CreateCommunityPostActivity extends AppCompatActivity {
     }
 
     private void setupCategories() {
-        int[][] states = {{android.R.attr.state_checked}, {}};
-        ColorStateList backgrounds = new ColorStateList(states, new int[] {
-                getColor(R.color.nav_active_indicator), getColor(R.color.surface_elevated)
+        ChipGroup categoryChips = findViewById(R.id.create_post_categories);
+        if (postType != null) categoryChips.check(postType.chipId);
+        categoryChips.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            postType = CommunityPostType.fromChipId(group.getCheckedChipId());
+            showCategory();
         });
-        ColorStateList labels = new ColorStateList(states, new int[] {
-                getColor(R.color.highlight_selected), getColor(R.color.text_secondary)
-        });
-        for (CommunityPostType type : CommunityPostType.values()) {
-            Chip chip = new Chip(this);
-            chip.setId(View.generateViewId());
-            chip.setSaveEnabled(false);
-            chip.setText(type.labelRes);
-            chip.setCheckable(true);
-            chip.setCheckedIconVisible(false);
-            chip.setEnsureMinTouchTargetSize(true);
-            chip.setChipBackgroundColor(backgrounds);
-            chip.setTextColor(labels);
-            chip.setChipStrokeWidth(0);
-            categoryChips.addView(chip);
-            chipIds.put(type, chip.getId());
-            chip.setOnClickListener(view -> {
-                postType = type;
-                showCategory();
-            });
-        }
-        Integer selectedChipId = postType == null ? null : chipIds.get(postType);
-        if (selectedChipId != null) categoryChips.check(selectedChipId);
     }
 
     private void showCategory() {

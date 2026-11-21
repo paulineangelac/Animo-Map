@@ -9,11 +9,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.widget.TextViewCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.card.MaterialCardView;
 import com.itismob.s02.group5.animomap.R;
 import com.itismob.s02.group5.animomap.ui.profile.OtherProfileActivity;
 
@@ -29,7 +26,7 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
 
         void onCommentsSelected(CommunityPost post);
 
-        void onUpvoteToggled(CommunityPost post, boolean isUpvoted);
+        void onUpvoteToggled(CommunityPost post);
 
         void onPhotoSelected(CommunityPost post, int photoIndex);
     }
@@ -37,24 +34,24 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
     private final Listener listener;
     private final List<CommunityPost> posts = new ArrayList<>();
     private final Set<String> savedPosts = new HashSet<>();
-    private Set<String> activeUpvotes;
 
     public CommunityFeedAdapter(Listener listener) {
         this.listener = listener;
     }
 
-    public void updatePosts(List<CommunityPost> newPosts, Set<String> upvotes) {
-        int oldCount = posts.size();
+    public void updatePosts(List<CommunityPost> newPosts) {
         posts.clear();
         posts.addAll(newPosts);
-        activeUpvotes = upvotes;
-        int newCount = posts.size();
-        int sharedCount = Math.min(oldCount, newCount);
-        if (sharedCount > 0) notifyItemRangeChanged(0, sharedCount);
-        if (newCount > oldCount) {
-            notifyItemRangeInserted(oldCount, newCount - oldCount);
-        } else if (oldCount > newCount) {
-            notifyItemRangeRemoved(newCount, oldCount - newCount);
+        notifyDataSetChanged();
+    }
+
+    void refreshPost(String postId) {
+        for (int i = 0; i < posts.size(); i++) {
+            if (posts.get(i).getId().equals(postId)) {
+                // Rebind the same holder so its photo carousel stays in place.
+                notifyItemChanged(i, postId);
+                return;
+            }
         }
     }
 
@@ -71,39 +68,20 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
         CommunityPost post = posts.get(position);
         Context context = holder.itemView.getContext();
 
-        holder.authorAvatar.setText(post.getAuthorInitials());
-        boolean hasAvatar = post.getAvatarResourceId() != 0;
-        holder.authorPhoto.setVisibility(hasAvatar ? View.VISIBLE : View.GONE);
-        holder.authorAvatar.setVisibility(hasAvatar ? View.GONE : View.VISIBLE);
-        holder.authorPhoto.setImageResource(post.getAvatarResourceId());
+        CommunityPostViews.bindAvatar(holder.authorAvatar, holder.authorPhoto,
+                post.getAuthorInitials(), post.getAvatarResourceId(), null);
         holder.authorName.setText(post.getAuthorName());
         holder.postMeta.setText(getPostMeta(context, post));
-        boolean hasLocation = post.getLocationName() != null && !post.getLocationName().trim().isEmpty();
-        holder.locationLabel.setVisibility(hasLocation ? View.VISIBLE : View.GONE);
-        holder.locationLabel.setText(post.getLocation() == null ? post.getLocationName()
-                : post.getLocation().label(context));
-        holder.locationLabel.setCompoundDrawablesWithIntrinsicBounds(
-                R.drawable.ic_community_location, 0, 0, 0);
-        holder.postTitle.setText(post.getTitle());
-        holder.postTitle.setVisibility(post.getTitle() == null ? View.GONE : View.VISIBLE);
+        CommunityPostViews.bindLocation(holder.locationLabel, post);
+        CommunityPostViews.bindTitle(holder.postTitle, post);
         holder.postDescription.setText(post.getDescription());
 
-        if (post.getMapReviewStatus() == CommunityPost.MapReviewStatus.PENDING) {
-            holder.candidateLabel.setVisibility(View.VISIBLE);
-            holder.postCard.setStrokeColor(context.getColor(R.color.community_card_border));
-            holder.postCard.setStrokeWidth(context.getResources().getDimensionPixelSize(
-                    R.dimen.community_candidate_stroke_width));
-        } else {
-            holder.candidateLabel.setVisibility(View.GONE);
-            holder.postCard.setStrokeColor(context.getColor(R.color.community_card_border));
-            holder.postCard.setStrokeWidth(context.getResources().getDimensionPixelSize(
-                    R.dimen.community_card_stroke_width));
-        }
+        CommunityPostViews.bindMapReviewLabel(holder.candidateLabel, post);
 
-        holder.bindPhotos(post, index -> listener.onPhotoSelected(post, index));
+        holder.photos.bind(post, index -> listener.onPhotoSelected(post, index));
 
-        boolean isUpvoted = activeUpvotes != null && activeUpvotes.contains(post.getId());
-        int voteCount = post.getUpvoteCount() + (isUpvoted ? 1 : 0);
+        boolean isUpvoted = CommunityFeedDataSource.isUpvoted(post);
+        int voteCount = CommunityFeedDataSource.getDisplayedVoteCount(post);
         holder.upvoteButton.setText(context.getString(R.string.community_vote_count, voteCount));
         holder.upvoteButton.setSelected(isUpvoted);
         TextViewCompat.setCompoundDrawableTintList(holder.upvoteButton,
@@ -111,10 +89,12 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
                         isUpvoted ? R.color.accent_teal : R.color.text_secondary)));
         holder.upvoteButton.setContentDescription(context.getString(
                 R.string.community_vote_accessibility, voteCount));
-        holder.commentsButton.setText(context.getString(
-                R.string.community_comments_count, post.getCommentCount()));
+        int commentCount = post.getCommentCount();
+        String commentLabel = context.getResources().getQuantityString(
+                R.plurals.community_comments_count, commentCount, commentCount);
+        holder.commentsButton.setText(commentLabel);
         holder.commentsButton.setContentDescription(context.getString(
-                R.string.community_comments_accessibility, post.getCommentCount()));
+                R.string.community_comments_accessibility, commentLabel));
         boolean isSaved = savedPosts.contains(post.getId());
         holder.saveButton.setSelected(isSaved);
         holder.saveButton.setContentDescription(context.getString(
@@ -122,8 +102,7 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
 
         holder.itemView.setOnClickListener(view -> listener.onPostSelected(post));
         holder.commentsButton.setOnClickListener(view -> listener.onCommentsSelected(post));
-        holder.upvoteButton.setOnClickListener(view ->
-                listener.onUpvoteToggled(post, !isUpvoted));
+        holder.upvoteButton.setOnClickListener(view -> listener.onUpvoteToggled(post));
         holder.saveButton.setOnClickListener(view -> {
             if (!savedPosts.add(post.getId())) {
                 savedPosts.remove(post.getId());
@@ -170,7 +149,6 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
     }
 
     public static final class PostViewHolder extends RecyclerView.ViewHolder {
-        final MaterialCardView postCard;
         final TextView candidateLabel;
         final TextView authorAvatar;
         final ImageView authorPhoto;
@@ -179,18 +157,13 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
         final TextView locationLabel;
         final TextView postTitle;
         final TextView postDescription;
-        final View photoArea;
-        final RecyclerView photos;
-        final TextView photoCount;
-        final LinearLayoutManager photoLayout;
-        private String photoPostId;
+        final PostPhotoCarousel photos;
         final TextView upvoteButton;
         final TextView commentsButton;
         final ImageView saveButton;
 
         PostViewHolder(@NonNull View itemView) {
             super(itemView);
-            postCard = itemView.findViewById(R.id.community_post_card);
             candidateLabel = itemView.findViewById(R.id.community_candidate_label);
             authorAvatar = itemView.findViewById(R.id.community_author_avatar);
             authorPhoto = itemView.findViewById(R.id.community_author_photo);
@@ -199,46 +172,10 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
             locationLabel = itemView.findViewById(R.id.community_location_label);
             postTitle = itemView.findViewById(R.id.community_post_title);
             postDescription = itemView.findViewById(R.id.community_post_description);
-            photoArea = itemView.findViewById(R.id.community_post_photo_area);
-            photoArea.setClipToOutline(true);
-            photos = itemView.findViewById(R.id.community_post_photos);
-            photoCount = itemView.findViewById(R.id.community_post_photo_count);
-            photoLayout = new LinearLayoutManager(itemView.getContext(), RecyclerView.HORIZONTAL, false);
-            photos.setLayoutManager(photoLayout);
-            photos.setNestedScrollingEnabled(false);
-            photos.setSaveEnabled(false);
-            PagerSnapHelper snap = new PagerSnapHelper();
-            snap.attachToRecyclerView(photos);
-            photos.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                @Override
-                public void onScrollStateChanged(@NonNull RecyclerView view, int state) {
-                    if (state != RecyclerView.SCROLL_STATE_IDLE) return;
-                    View photo = snap.findSnapView(photoLayout);
-                    if (photo != null) updateCounter(photoLayout.getPosition(photo));
-                }
-            });
+            photos = new PostPhotoCarousel(itemView);
             upvoteButton = itemView.findViewById(R.id.community_upvote_button);
             commentsButton = itemView.findViewById(R.id.community_comments_button);
             saveButton = itemView.findViewById(R.id.community_save_button);
-        }
-
-        void bindPhotos(CommunityPost post, PostPhotoPagerAdapter.PhotoClick onPhotoClick) {
-            if (post.getId().equals(photoPostId)) return;
-            photoPostId = post.getId();
-            int count = PostPhotoPagerAdapter.count(post);
-            photoArea.setVisibility(count == 0 ? View.GONE : View.VISIBLE);
-            photoCount.setVisibility(count > 1 ? View.VISIBLE : View.GONE);
-            photos.stopScroll();
-            photos.setAdapter(count == 0 ? null : new PostPhotoPagerAdapter(post, onPhotoClick));
-            photoLayout.scrollToPositionWithOffset(0, 0);
-            updateCounter(0);
-        }
-
-        private void updateCounter(int index) {
-            RecyclerView.Adapter<?> adapter = photos.getAdapter();
-            if (adapter == null || index == RecyclerView.NO_POSITION) return;
-            photoCount.setText(itemView.getContext().getString(
-                    R.string.community_photo_index, index + 1, adapter.getItemCount()));
         }
     }
 }
