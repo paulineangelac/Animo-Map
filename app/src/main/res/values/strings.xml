@@ -158,18 +158,12 @@
     <string name="groups_dialog_audience_confirm">Confirm</string>
     <string name="groups_dialog_cancel">Cancel</string>
     <string name="groups_title_location_sharing_on">Location sharing is on</string>
-    <string name="groups_subtitle_location_sharing_on">Sharing location with %1$s.</string>
-    <string name="groups_sharing_updated">Location sharing set to: %1$s</string>
     <string name="groups_dialog_create_title">Create New Group</string>
     <string name="groups_dialog_create_hint">Enter group name</string>
     <string name="groups_dialog_create_action">Create</string>
     <string name="groups_error_empty_group_name">Please enter a group name.</string>
     <string name="groups_created_success">Group \"%1$s\" created!</string>
     <string name="groups_dialog_join_title">Join Group with Code</string>
-    <string name="groups_dialog_join_hint">Enter 6-digit code (e.g. 123456)</string>
     <string name="groups_dialog_join_action">Join</string>
-    <string name="groups_error_invalid_code">Please enter a valid 6-digit code.</string>
-    <string name="groups_join_submitted">Code \"%1$s\" submitted. Verification pending.</string>
     <string name="groups_manage_unavailable">Group management is not available yet.</string>
-    <string name="groups_selected_feedback">Selected group: %1$s</string>
 </resources>

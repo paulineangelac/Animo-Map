@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -19,22 +20,38 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:layout_marginBottom="16dp"
-        android:text="Enter the 6-digit code provided by your group host."
+        android:text="@string/groups_dialog_join_subtitle"
         android:textColor="@color/text_secondary"
         android:textSize="12sp" />
 
+    <!-- Capital letters and the 6-character limit are set in GroupsFragment with InputFilters -->
     <EditText
         android:id="@+id/dialog_join_input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:autofillHints=""
         android:background="@drawable/bg_dialog_input"
+        android:fontFamily="monospace"
         android:hint="@string/groups_dialog_join_hint"
-        android:inputType="number"
+        android:inputType="textCapCharacters|textNoSuggestions"
+        android:letterSpacing="0.15"
+        android:minHeight="48dp"
         android:padding="12dp"
         android:singleLine="true"
         android:textColor="@color/text_primary"
         android:textColorHint="@color/text_secondary"
-        android:textSize="14sp" />
+        android:textSize="16sp" />
+
+    <!-- Shown when the code is empty, badly formatted, unknown, or for a group you're already in -->
+    <TextView
+        android:id="@+id/dialog_join_error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:accessibilityLiveRegion="polite"
+        android:textColor="@color/groups_error"
+        android:textSize="12sp"
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="match_parent"
