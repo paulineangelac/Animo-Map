@@ -62,6 +62,9 @@ public class CampusRoutePlannerTest {
             assertEquals("fewer_stairs", alt.getId());
             assertTrue("Alternative route distance should be >= shortest", alt.getDistanceMeters() >= shortest.getDistanceMeters());
             assertTrue(alt.getStairCount() < shortest.getStairCount());
+            assertNotNull(alt.getFormattedDistance());
+            assertNotNull(alt.getFormattedTime());
+            assertFalse(alt.getPoints().isEmpty());
         }
     }
 }
