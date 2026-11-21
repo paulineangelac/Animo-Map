@@ -26,16 +26,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.snackbar.Snackbar;
 import com.itismob.s02.group5.animomap.R;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class CommunityFragment extends Fragment {
     private static final String STATE_FILTER = "filter";
     private static final String STATE_UPVOTES = "upvotes";
 
-    private final Set<String> activeUpvotes = new HashSet<>();
     private CommunityFeedDataSource.Category selectedCategory =
             CommunityFeedDataSource.Category.RECENT;
     private CommunityFeedAdapter adapter;
@@ -51,6 +47,14 @@ public class CommunityFragment extends Fragment {
                 if (result.getResultCode() != Activity.RESULT_OK || data == null) return;
                 String postId = data.getStringExtra(CreateCommunityPostActivity.EXTRA_POST_ID);
                 onPostPublished(postId);
+            });
+
+    private final ActivityResultLauncher<Intent> details =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                Intent data = result.getData();
+                if (result.getResultCode() == Activity.RESULT_OK && data != null && getView() != null) {
+                    adapter.refreshPost(data.getStringExtra(CommunityPostDetailsActivity.EXTRA_POST_ID));
+                }
             });
 
     public CommunityFragment() {
@@ -72,7 +76,7 @@ public class CommunityFragment extends Fragment {
             String filter = savedInstanceState.getString(STATE_FILTER);
             if (filter != null) selectedCategory = CommunityFeedDataSource.Category.valueOf(filter);
             List<String> upvotes = savedInstanceState.getStringArrayList(STATE_UPVOTES);
-            if (upvotes != null) activeUpvotes.addAll(upvotes);
+            if (upvotes != null) CommunityFeedDataSource.restoreSessionUpvotes(upvotes);
         }
         recyclerView = view.findViewById(R.id.community_recycler);
         emptyState = view.findViewById(R.id.community_empty_state);
@@ -87,32 +91,27 @@ public class CommunityFragment extends Fragment {
         adapter = new CommunityFeedAdapter(new CommunityFeedAdapter.Listener() {
             @Override
             public void onPostSelected(CommunityPost post) {
-                showMessage(R.string.community_post_details_unavailable);
+                openDetails(post, false);
             }
 
             @Override
             public void onCommentsSelected(CommunityPost post) {
-                showMessage(R.string.community_comments_unavailable);
+                openDetails(post, true);
             }
 
             @Override
-            public void onUpvoteToggled(CommunityPost post, boolean isUpvoted) {
-                String postId = post.getId();
-                if (activeUpvotes.contains(postId) == isUpvoted) return;
-                CommunityFeedDataSource.toggleUpvote(activeUpvotes, postId);
+            public void onUpvoteToggled(CommunityPost post) {
+                CommunityFeedDataSource.toggleUpvote(post);
                 if (selectedCategory == CommunityFeedDataSource.Category.RECOMMENDED) {
                     showSelectedCategory();
                 } else {
-                    adapter.refreshUpvote(postId);
+                    adapter.refreshPost(post.getId());
                 }
             }
 
             @Override
             public void onPhotoSelected(CommunityPost post, int photoIndex) {
-                Intent intent = new Intent(requireContext(), CommunityPhotoViewerActivity.class)
-                        .putExtra(CommunityPhotoViewerActivity.EXTRA_POST_ID, post.getId())
-                        .putExtra(CommunityPhotoViewerActivity.EXTRA_PHOTO_INDEX, photoIndex);
-                startActivity(intent);
+                CommunityPhotoViewerActivity.open(requireContext(), post, photoIndex);
             }
         });
 
@@ -131,7 +130,14 @@ public class CommunityFragment extends Fragment {
     public void onSaveInstanceState(@NonNull Bundle state) {
         super.onSaveInstanceState(state);
         state.putString(STATE_FILTER, selectedCategory.name());
-        state.putStringArrayList(STATE_UPVOTES, new ArrayList<>(activeUpvotes));
+        state.putStringArrayList(STATE_UPVOTES, CommunityFeedDataSource.getSessionUpvotes());
+    }
+
+    private void openDetails(CommunityPost post, boolean openComments) {
+        Intent intent = new Intent(requireContext(), CommunityPostDetailsActivity.class)
+                .putExtra(CommunityPostDetailsActivity.EXTRA_POST_ID, post.getId())
+                .putExtra(CommunityPostDetailsActivity.EXTRA_OPEN_COMMENTS, openComments);
+        details.launch(intent);
     }
 
     private void onPostPublished(String postId) {
@@ -158,9 +164,8 @@ public class CommunityFragment extends Fragment {
         reviewNotice.setVisibility(selectedCategory == CommunityFeedDataSource.Category.POI_CANDIDATES
                 ? View.VISIBLE : View.GONE);
 
-        List<CommunityPost> visiblePosts = CommunityFeedDataSource.getPostsForCategory(
-                CommunityFeedDataSource.getSessionPosts(), selectedCategory, activeUpvotes);
-        adapter.updatePosts(visiblePosts, activeUpvotes);
+        List<CommunityPost> visiblePosts = CommunityFeedDataSource.getVisiblePosts(selectedCategory);
+        adapter.updatePosts(visiblePosts);
 
         boolean isEmpty = visiblePosts.isEmpty();
         emptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);

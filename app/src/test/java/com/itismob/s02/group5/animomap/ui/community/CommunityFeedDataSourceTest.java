@@ -107,6 +107,72 @@ public class CommunityFeedDataSourceTest {
     }
 
     @Test
+    public void commentsUpdateOnlyTheirPostAndAreReturnedNewestFirst() {
+        CommunityPost first = submitDiscussion();
+        CommunityPost second = submitDiscussion();
+
+        assertTrue(CommunityFeedDataSource.addComment(first.getId(), "Alex Santos",
+                "alexsantos", "AS", null, "  First comment.  "));
+        assertTrue(CommunityFeedDataSource.addComment(first.getId(), "Alex Santos",
+                "alexsantos", "AS", null, "Second comment."));
+
+        List<CommunityComment> comments = CommunityFeedDataSource.getComments(first.getId());
+        assertEquals(2, comments.size());
+        assertEquals("Second comment.", comments.get(0).text);
+        assertEquals("First comment.", comments.get(1).text);
+        assertEquals("alexsantos", comments.get(0).username);
+        assertEquals(2, CommunityFeedDataSource.findPost(first.getId()).getCommentCount());
+        assertEquals(0, second.getCommentCount());
+        assertTrue(CommunityFeedDataSource.getComments(second.getId()).isEmpty());
+        comments.clear();
+        assertEquals(2, CommunityFeedDataSource.getComments(first.getId()).size());
+    }
+
+    @Test
+    public void blankCommentsAndUnknownPostsDoNotChangeCounts() {
+        CommunityPost post = submitDiscussion();
+        assertFalse(CommunityFeedDataSource.addComment(post.getId(), "Alex Santos",
+                "alexsantos", "AS", null, "\u00a0 \t\n"));
+        assertFalse(CommunityFeedDataSource.addComment("missing-post", "Alex Santos",
+                "alexsantos", "AS", null, "A valid comment."));
+        assertEquals(0, post.getCommentCount());
+        assertTrue(CommunityFeedDataSource.getComments(post.getId()).isEmpty());
+        assertTrue(CommunityFeedDataSource.getComments("missing-post").isEmpty());
+    }
+
+    @Test
+    public void sampleCountsMatchTheirExistingCommentRows() {
+        List<Integer> expectedCounts = Arrays.asList(18, 11, 7, 5, 3, 2);
+        List<CommunityPost> posts = CommunityFeedDataSource.getSamplePosts();
+        assertEquals(expectedCounts.size(), posts.size());
+        for (int i = 0; i < posts.size(); i++) {
+            CommunityPost post = posts.get(i);
+            assertEquals(expectedCounts.get(i).intValue(), post.getCommentCount());
+            assertEquals(post.getCommentCount(),
+                    CommunityFeedDataSource.getComments(post.getId()).size());
+        }
+    }
+
+    @Test
+    public void sharedVoteCountMatchesFeedSortingAndCanBeReset() {
+        CommunityPost upvoted = submitDiscussion();
+        CommunityPost other = submitDiscussion();
+        CommunityFeedDataSource.toggleUpvote(upvoted);
+        try {
+            List<CommunityPost> relevant = CommunityFeedDataSource.getVisiblePosts(
+                    CommunityFeedDataSource.Category.RECOMMENDED);
+            assertTrue(relevant.indexOf(upvoted) < relevant.indexOf(other));
+            assertTrue(CommunityFeedDataSource.isUpvoted(upvoted));
+            assertEquals(1, CommunityFeedDataSource.getDisplayedVoteCount(
+                    CommunityFeedDataSource.findPost(upvoted.getId())));
+            assertEquals(0, CommunityFeedDataSource.getDisplayedVoteCount(other));
+        } finally {
+            CommunityFeedDataSource.toggleUpvote(upvoted);
+        }
+        assertEquals(0, CommunityFeedDataSource.getDisplayedVoteCount(upvoted));
+    }
+
+    @Test
     public void recentCategoryShowsAllPostsNewestFirst() {
         List<CommunityPost> posts = Arrays.asList(
                 post("old", 90, 4, 100L, false),
@@ -188,6 +254,12 @@ public class CommunityFeedDataSourceTest {
                 posts, CommunityFeedDataSource.Category.POI_CANDIDATES, new HashSet<>());
 
         assertTrue(result.isEmpty());
+    }
+
+    private CommunityPost submitDiscussion() {
+        return CommunityFeedDataSource.submitPost("@alexsantos", "AS",
+                CommunityPostType.GENERAL_DISCUSSION, "", "Test discussion.",
+                null, Collections.emptyList());
     }
 
     private CommunityPost post(String id, int votes, int comments, long createdAt,

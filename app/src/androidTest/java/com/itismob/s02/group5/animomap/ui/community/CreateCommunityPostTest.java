@@ -127,7 +127,7 @@ public class CreateCommunityPostTest {
     }
 
     @Test
-    public void importedPhotosSurviveDraftRecreationAndPageThroughTheFeedAndViewer() throws IOException {
+    public void importedPhotosSurviveDraftRecreationAndOpenFromFeedAndDetails() throws IOException {
         File first = photoFixture(Color.GREEN);
         File second = photoFixture(Color.BLUE);
         try (ActivityScenario<CreateCommunityPostActivity> scenario =
@@ -171,6 +171,16 @@ public class CreateCommunityPostTest {
             pressBack();
             waitFor(withText("A post with two photos."));
             onView(withText("A post with two photos.")).check(matches(isDisplayed()));
+
+            onView(withText("A post with two photos.")).perform(click());
+            waitFor(withId(R.id.details_post_description));
+            onView(withId(R.id.community_post_photos)).perform(swipeLeft());
+            waitFor(allOf(withId(R.id.community_post_photo_count), withText("2 / 2")));
+            onView(withId(R.id.community_post_photos)).perform(click());
+            waitFor(allOf(withId(R.id.community_viewer_count), withText("2 / 2")));
+            pressBack();
+            waitFor(withId(R.id.details_post_description));
+            onView(withId(R.id.details_post_description)).check(matches(isDisplayed()));
         }
     }
 

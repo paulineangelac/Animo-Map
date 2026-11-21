@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="community_details_title">Post Details</string>
+    <string name="community_details_missing">This post is no longer available.</string>
+    <string name="community_author_with_username">%1$s · %2$s</string>
+    <string name="community_open_author_profile">View profile for %1$s</string>
+    <plurals name="community_upvote_total">
+        <item quantity="one">%1$d upvote</item>
+        <item quantity="other">%1$d upvotes</item>
+    </plurals>
+    <string name="community_comments_heading">Comments (%1$d)</string>
+    <string name="community_no_comments">No comments yet.</string>
+    <string name="community_comments_oldest">Oldest First</string>
+    <string name="community_comments_sort_description">Sort comments. Current order: %1$s</string>
+    <string name="community_comment_hint">Write a comment</string>
+    <string name="community_send_comment">Send</string>
+    <string name="community_comment_required">Enter a comment before sending.</string>
+    <string name="community_report_post">Report Post</string>
+    <string name="community_report_confirmation">Reporting is a preview. No report will be sent.</string>
+    <string name="community_report_confirm">Confirm</string>
+    <string name="community_report_acknowledgement">Report preview confirmed.</string>
+</resources>

@@ -21,7 +21,7 @@ public class CommunityPost {
     private final String description;
     private final int imageResourceId;
     private final int upvoteCount;
-    private final int commentCount;
+    private int commentCount;
     private final long createdAtMillis;
     private final MapReviewStatus mapReviewStatus;
     private final CommunityPostType postType;
@@ -133,6 +133,10 @@ public class CommunityPost {
 
     public int getCommentCount() {
         return commentCount;
+    }
+
+    void setCommentCount(int commentCount) {
+        this.commentCount = commentCount;
     }
 
     public long getCreatedAtMillis() {
