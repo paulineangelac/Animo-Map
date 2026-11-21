@@ -331,12 +331,28 @@
                         android:id="@+id/btn_map_get_directions"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:enabled="false"
+                        android:enabled="true"
                         android:minHeight="48dp"
                         android:layout_marginTop="12dp"
                         android:text="@string/map_get_directions"
-                        android:textColor="@color/text_secondary"
-                        app:backgroundTint="@color/surface_elevated" />
+                        android:textColor="@color/white"
+                        app:backgroundTint="@color/primary_teal" />
+                    <LinearLayout
+                        android:id="@+id/map_route_options_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="8dp"
+                        android:visibility="gone">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/map_route_options_heading"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp" />
+                    </LinearLayout>
                     <!-- Secondary action: neutral graphite, so the teal stays for real actions. -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_map_directions"

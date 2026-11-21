@@ -122,7 +122,9 @@ public class MapFragment extends Fragment {
     private ChipGroup filters, searchFilters;
     private MapPlace selected;
     private MapPlace.Category category;
-    private boolean demo, updatingUi, focusRequested;
+    private boolean demo, routingMode, updatingUi, focusRequested;
+    private int selectedRouteIndex = 0;
+    private List<RouteOption> currentRouteOptions = new ArrayList<>();
     private int lastMaxCardHeight;
     private boolean gpsRequested, gpsUpdatesRunning, centerOnNextFix;
     private Bitmap userPinIcon;
@@ -181,6 +183,11 @@ public class MapFragment extends Fragment {
             selected = CampusMapData.findPlace(state.getString("map.selected"));
             demo = state.getBoolean("map.demo") && selected != null
                     && CampusMapData.hasDemoRoute(selected.getId());
+            routingMode = state.getBoolean("map.routing_mode");
+            selectedRouteIndex = state.getInt("map.selected_route_index", 0);
+            if (routingMode && selected != null) {
+                currentRouteOptions = CampusRoutePlanner.getRouteOptions(getRouteOrigin(), selected);
+            }
             cameraToRestore = state.getDoubleArray("map.camera");
             gpsRequested = state.getBoolean("map.gps");
             centerOnNextFix = state.getBoolean("map.center_on_next_fix");
@@ -214,14 +221,36 @@ public class MapFragment extends Fragment {
         view.findViewById(R.id.btn_close_map_place).setOnClickListener(button -> clearSelection());
         directions.setOnClickListener(button -> {
             demo = !demo;
+            routingMode = false;
             render();
             focusRequested = true;
+        });
+        getDirections.setOnClickListener(button -> {
+            if (!routingMode) {
+                showRouteOriginPicker(() -> {
+                    routingMode = true;
+                    demo = false;
+                    selectedRouteIndex = 0;
+                    MapPlace origin = getRouteOrigin();
+                    currentRouteOptions = CampusRoutePlanner.getRouteOptions(origin, selected);
+                    render();
+                    focusRequested = true;
+                });
+            } else {
+                routingMode = false;
+                render();
+                focusRequested = true;
+            }
         });
         backCallback = new OnBackPressedCallback(false) {
             @Override public void handleOnBackPressed() {
                 WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(root);
                 if (insets != null && insets.isVisible(WindowInsetsCompat.Type.ime())) {
                     hideKeyboard();
+                } else if (routingMode) {
+                    routingMode = false;
+                    render();
+                    focusRequested = true;
                 } else if (demo) {
                     demo = false;
                     render();
@@ -237,7 +266,9 @@ public class MapFragment extends Fragment {
             if (!updateViewport()) { return; }
             if (focusRequested && selected != null) {
                 focusRequested = false;
-                if (demo) { focusOnRoute(); } else { focusOnPlace(selected); }
+                if (routingMode) { focusOnSelectedRoute(); }
+                else if (demo) { focusOnRoute(); }
+                else { focusOnPlace(selected); }
             }
         };
         root.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
@@ -402,6 +433,13 @@ public class MapFragment extends Fragment {
             routeLine.create(new PolylineAnnotationOptions().withPoints(points)
                     .withLineColor(ContextCompat.getColor(requireContext(), R.color.accent_teal))
                     .withLineWidth(6.0));
+        } else if (routingMode && !currentRouteOptions.isEmpty() && selectedRouteIndex >= 0 && selectedRouteIndex < currentRouteOptions.size()) {
+            RouteOption opt = currentRouteOptions.get(selectedRouteIndex);
+            List<Point> points = new ArrayList<>();
+            for (double[] p : opt.getPoints()) { points.add(Point.fromLngLat(p[1], p[0])); }
+            routeLine.create(new PolylineAnnotationOptions().withPoints(points)
+                    .withLineColor(ContextCompat.getColor(requireContext(), R.color.accent_teal))
+                    .withLineWidth(6.0));
         }
         List<MapPlace> shown = new ArrayList<>();
         for (MapPlace place : CampusMapData.getPlaces()) {
@@ -476,6 +514,88 @@ public class MapFragment extends Fragment {
         CameraOptions camera = mapboxMap.cameraForCoordinates(points, new CameraOptions.Builder().build(),
                 fit, 19.0, null);
         moveCamera(camera);
+    }
+
+    private MapPlace getRouteOrigin() {
+        MapPlace manual = UserLocation.getManualPlace();
+        if (manual != null && (selected == null || manual != selected)) {
+            return manual;
+        }
+        if (selected != null && selected.getId().equals(CampusMapData.LASALLE)) {
+            return CampusMapData.findPlace(CampusMapData.HENRY_SY);
+        }
+        return CampusMapData.findPlace(CampusMapData.LASALLE);
+    }
+
+    @OptIn(markerClass = MapboxDelicateApi.class)
+    private void focusOnSelectedRoute() {
+        if (currentRouteOptions.isEmpty() || selectedRouteIndex >= currentRouteOptions.size()) { return; }
+        RouteOption opt = currentRouteOptions.get(selectedRouteIndex);
+        List<Point> points = new ArrayList<>();
+        for (double[] p : opt.getPoints()) { points.add(Point.fromLngLat(p[1], p[0])); }
+        MapPlace origin = getRouteOrigin();
+        if (origin != null) { points.add(Point.fromLngLat(origin.getLongitude(), origin.getLatitude())); }
+        if (selected != null) { points.add(Point.fromLngLat(selected.getLongitude(), selected.getLatitude())); }
+        EdgeInsets fit = new EdgeInsets(padding.getTop() + dp(24), padding.getLeft() + dp(24),
+                padding.getBottom() + dp(24), padding.getRight() + dp(24));
+        CameraOptions camera = mapboxMap.cameraForCoordinates(points, new CameraOptions.Builder().build(),
+                fit, 19.0, null);
+        moveCamera(camera);
+    }
+
+    private void populateRouteOptionsView(LinearLayout container) {
+        while (container.getChildCount() > 1) {
+            container.removeViewAt(1);
+        }
+        for (int i = 0; i < currentRouteOptions.size(); i++) {
+            RouteOption opt = currentRouteOptions.get(i);
+            boolean isSelected = (i == selectedRouteIndex);
+
+            com.google.android.material.card.MaterialCardView optionCard = new com.google.android.material.card.MaterialCardView(requireContext());
+            LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            cardParams.bottomMargin = dp(8);
+            optionCard.setLayoutParams(cardParams);
+            optionCard.setRadius(dp(12));
+            optionCard.setStrokeWidth(isSelected ? dp(2) : dp(1));
+            optionCard.setStrokeColor(ContextCompat.getColor(requireContext(),
+                    isSelected ? R.color.accent_teal : R.color.surface_elevated));
+            optionCard.setCardBackgroundColor(ContextCompat.getColor(requireContext(),
+                    isSelected ? R.color.surface_elevated : R.color.bg_primary));
+            optionCard.setClickable(true);
+            optionCard.setFocusable(true);
+
+            LinearLayout content = new LinearLayout(requireContext());
+            content.setOrientation(LinearLayout.VERTICAL);
+            content.setPadding(dp(12), dp(12), dp(12), dp(12));
+
+            TextView titleView = new TextView(requireContext());
+            titleView.setText(opt.getTitle());
+            titleView.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary));
+            titleView.setTextSize(14f);
+            titleView.setTypeface(null, android.graphics.Typeface.BOLD);
+            content.addView(titleView);
+
+            TextView detailsView = new TextView(requireContext());
+            String stairsText = opt.getStairCount() == 0 ? getString(R.string.map_route_no_stairs)
+                    : getString(R.string.map_route_stairs, opt.getStairCount());
+            detailsView.setText(opt.getFormattedDistance() + " · " + opt.getFormattedTime() + " · " + stairsText);
+            detailsView.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
+            detailsView.setTextSize(12f);
+            detailsView.setPadding(0, dp(4), 0, 0);
+            content.addView(detailsView);
+
+            optionCard.addView(content);
+
+            final int index = i;
+            optionCard.setOnClickListener(v -> {
+                selectedRouteIndex = index;
+                render();
+                focusOnSelectedRoute();
+            });
+
+            container.addView(optionCard);
+        }
     }
 
     // ---- User location: GPS when permitted, otherwise a manually chosen building ----
@@ -557,6 +677,22 @@ public class MapFragment extends Fragment {
             });
         }
         dialog.show();
+    }
+    private void showRouteOriginPicker(Runnable onSelected) {
+        List<MapPlace> buildings = new ArrayList<>();
+        for (MapPlace place : CampusMapData.getPlaces()) {
+            if (place.getCategory() == MapPlace.Category.BUILDING) { buildings.add(place); }
+        }
+        String[] names = new String[buildings.size()];
+        for (int i = 0; i < names.length; i++) { names[i] = buildings.get(i).getName(); }
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.map_location_picker_title)
+                .setItems(names, (d, which) -> {
+                    setManualLocation(buildings.get(which));
+                    onSelected.run();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
     private void setManualLocation(MapPlace building) {
         stopGps();
@@ -727,6 +863,7 @@ public class MapFragment extends Fragment {
     private void select(MapPlace place, boolean fromSearch) {
         selected = place;
         demo = false;
+        routingMode = false;
         updatingUi = true;
         if (fromSearch) {
             // Rooms and indoor places are shown alone, so no category chip applies to them.
@@ -751,6 +888,7 @@ public class MapFragment extends Fragment {
     private void clearSelection() {
         selected = null;
         demo = false;
+        routingMode = false;
         focusRequested = false;
         hideKeyboard();
         render();
@@ -774,23 +912,40 @@ public class MapFragment extends Fragment {
         if (selected != null) {
             if (demo) {
                 categoryText.setText(R.string.map_demo_notice);
+            } else if (routingMode) {
+                categoryText.setText(getString(R.string.map_directions_subtitle, getRouteOrigin().getName()));
             } else if (selected.isHotspot()) {
                 categoryText.setText(getString(R.string.place_hotspot_category,
                         getString(MapPlace.categoryLabelRes(selected.getCategory()))));
             } else {
                 categoryText.setText(MapPlace.categoryLabelRes(selected.getCategory()));
             }
-            title.setText(demo ? getString(R.string.map_demo_title) : selected.getName());
-            String locationLine = selected.getLocationLine();
-            subtitle.setText(demo ? getString(R.string.map_demo_subtitle) : locationLine);
-            subtitle.setVisibility(!demo && "Building".equals(locationLine) ? View.GONE : View.VISIBLE);
+            if (routingMode) {
+                title.setText(getString(R.string.map_directions_title, getRouteOrigin().getName(), selected.getName()));
+                subtitle.setVisibility(View.GONE);
+            } else {
+                title.setText(demo ? getString(R.string.map_demo_title) : selected.getName());
+                String locationLine = selected.getLocationLine();
+                subtitle.setText(demo ? getString(R.string.map_demo_subtitle) : locationLine);
+                subtitle.setVisibility(!demo && "Building".equals(locationLine) ? View.GONE : View.VISIBLE);
+            }
             boolean hasRoute = CampusMapData.hasDemoRoute(selected.getId());
-            hotspotNote.setVisibility(selected.isHotspot() && !demo ? View.VISIBLE : View.GONE);
-            directions.setVisibility(hasRoute ? View.VISIBLE : View.GONE);
+            hotspotNote.setVisibility(selected.isHotspot() && !demo && !routingMode ? View.VISIBLE : View.GONE);
+            directions.setVisibility(hasRoute && !routingMode ? View.VISIBLE : View.GONE);
             directions.setText(demo ? R.string.map_back_to_place : R.string.map_preview_demo);
-            // Directions is a disabled placeholder for now: it has no action yet.
+            
             getDirections.setVisibility(demo ? View.GONE : View.VISIBLE);
-            details.bind(selected, !demo);
+            getDirections.setText(routingMode ? R.string.map_back_to_place_details : R.string.map_get_directions);
+
+            LinearLayout routeOptionsContainer = root.findViewById(R.id.map_route_options_container);
+            routeOptionsContainer.setVisibility(routingMode ? View.VISIBLE : View.GONE);
+
+            if (routingMode) {
+                details.bind(selected, false);
+                populateRouteOptionsView(routeOptionsContainer);
+            } else {
+                details.bind(selected, !demo);
+            }
             resetCardHeight();
             ScrollView body = card.findViewById(R.id.map_place_scroll);
             body.scrollTo(0, 0);
@@ -897,6 +1052,8 @@ public class MapFragment extends Fragment {
         state.putString("map.category", category == null ? null : category.name());
         state.putString("map.selected", selected == null ? null : selected.getId());
         state.putBoolean("map.demo", demo);
+        state.putBoolean("map.routing_mode", routingMode);
+        state.putInt("map.selected_route_index", selectedRouteIndex);
         state.putBoolean("map.gps", gpsRequested);
         state.putBoolean("map.center_on_next_fix", centerOnNextFix);
         state.putBoolean("map.search_open", searchPanel != null
