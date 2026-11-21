@@ -18,8 +18,48 @@ public class CampusMapDataTest {
                     onCampus(place.getLatitude(), place.getLongitude()));
             assertFalse(place.getName().isEmpty());
         }
-        assertEquals(13, ids.size());
+        assertEquals(31, ids.size());
         assertTrue(onCampus(CampusMapData.CENTER_LAT, CampusMapData.CENTER_LNG));
+    }
+    @Test public void exactlyOneFixedSampleHotspotWithAMapMarker() {
+        int hotspots = 0;
+        for (MapPlace place : CampusMapData.getPlaces()) {
+            if (place.isHotspot()) {
+                hotspots++;
+                assertTrue(place.hasMapMarker());
+            }
+        }
+        assertEquals(1, hotspots);
+        assertTrue(CampusMapData.findPlace("sample_hotspot").isHotspot());
+    }
+    @Test public void everyCategoryHasAtLeastOneMarkerPlace() {
+        for (MapPlace.Category category : MapPlace.Category.values()) {
+            boolean found = false;
+            for (MapPlace place : CampusMapData.getPlaces()) {
+                if (place.getCategory() == category && place.hasMapMarker()) { found = true; }
+            }
+            assertTrue(category + " has no marker place", found);
+        }
+    }
+    @Test public void classroomsAreSearchableByRoomNumberAndShowBuildingAndFloor() {
+        MapPlace room = CampusMapData.findPlace("gokongwei_g301");
+        assertNotNull(room);
+        assertTrue(room.matches("G301"));
+        assertTrue(room.matches("g 301"));
+        assertEquals("Gokongwei Hall · Floor 3", room.getLocationLine());
+        assertFalse(room.hasMapMarker());
+        assertTrue(CampusMapData.isShownOnMap(room, room, null, false));
+        assertFalse(CampusMapData.isShownOnMap(room, null, null, false));
+    }
+    @Test public void selectedRoomIsTheOnlyPlaceShown() {
+        MapPlace room = CampusMapData.findPlace("gokongwei_g301");
+        for (MapPlace place : CampusMapData.getPlaces()) {
+            assertEquals(place == room, CampusMapData.isShownOnMap(place, room, null, false));
+            assertEquals(place == room,
+                    CampusMapData.isShownOnMap(place, room, MapPlace.Category.BUILDING, false));
+        }
+        // Without a selection, buildings are shown again.
+        assertTrue(CampusMapData.isShownOnMap(CampusMapData.findPlace("gokongwei"), null, null, false));
     }
     @Test public void namesAndAliasesAreSearchable() {
         MapPlace henry = CampusMapData.findPlace(CampusMapData.HENRY_SY);

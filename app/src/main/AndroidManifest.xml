@@ -56,6 +56,9 @@
         <activity
             android:name=".ui.moderation.ModeratorActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.groups.GroupDetailsActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

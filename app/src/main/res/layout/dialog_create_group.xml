@@ -19,21 +19,74 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:layout_marginBottom="16dp"
-        android:text="Enter a group name to coordinate with your friends."
+        android:text="@string/groups_dialog_create_subtitle"
         android:textColor="@color/text_secondary"
         android:textSize="12sp" />
+
+    <!-- Group name (required) -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:labelFor="@id/dialog_create_input"
+        android:text="@string/groups_label_group_name"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
 
     <EditText
         android:id="@+id/dialog_create_input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:autofillHints=""
         android:background="@drawable/bg_dialog_input"
         android:hint="@string/groups_dialog_create_hint"
+        android:inputType="textCapWords"
+        android:maxLength="40"
+        android:minHeight="48dp"
         android:padding="12dp"
         android:singleLine="true"
         android:textColor="@color/text_primary"
         android:textColorHint="@color/text_secondary"
         android:textSize="14sp" />
+
+    <!-- Description (optional) -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="6dp"
+        android:labelFor="@id/dialog_create_description"
+        android:text="@string/groups_label_description"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
+    <EditText
+        android:id="@+id/dialog_create_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints=""
+        android:background="@drawable/bg_dialog_input"
+        android:gravity="top|start"
+        android:hint="@string/groups_dialog_description_hint"
+        android:inputType="textCapSentences|textMultiLine"
+        android:maxLength="120"
+        android:maxLines="4"
+        android:minLines="2"
+        android:padding="12dp"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_secondary"
+        android:textSize="14sp" />
+
+    <!-- Shown when the name or description is not valid -->
+    <TextView
+        android:id="@+id/dialog_create_error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:accessibilityLiveRegion="polite"
+        android:textColor="@color/groups_error"
+        android:textSize="12sp"
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="match_parent"

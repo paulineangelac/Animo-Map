@@ -32,11 +32,13 @@
     <string name="placeholder_groups">Groups screen placeholder. Private groups and presence sharing coming soon.</string>
 
     <!-- Map search, filters, and illustrative prototype data -->
-    <string name="map_search_hint">What are you looking for?</string>
+    <string name="map_search_hint">Building, room, or place</string>
+    <string name="map_search_title">Search campus</string>
+    <string name="map_set_my_location">Set my location</string>
     <string name="map_search_landing_label">Search buildings, rooms, or places</string>
     <string name="map_search_recent_heading">Recently searched</string>
     <string name="map_search_results_heading">Search results</string>
-    <string name="map_search_empty">No matching places found.</string>
+    <string name="map_search_empty">No matching places found. Try a building name or a different filter.</string>
     <string name="map_search_no_recent">No recent places yet. Try a building name or room number.</string>
     <string name="map_close_search">Close search</string>
     <string name="map_voice_search_description">Voice search</string>
@@ -57,9 +59,8 @@
     <string name="map_location_off_campus">You\'re not on campus. Choose where you are instead.</string>
     <string name="map_close_place">Close selected place</string>
     <string name="map_no_results">No matching places</string>
-    <string name="map_preview_demo">Preview demo route</string>
+    <string name="map_preview_demo">Preview sample route</string>
     <string name="map_back_to_place">Back to place</string>
-    <string name="map_unmapped">Directions are not mapped yet</string>
     <string name="map_demo_notice">Demo route · not verified directions</string>
     <string name="map_demo_title">St. La Salle Hall → Henry Sy Sr. Hall</string>
     <string name="map_demo_subtitle">Fixed example on the campus map</string>
@@ -69,11 +70,41 @@
     <string name="map_filter_restrooms">Restrooms</string>
     <string name="map_filter_hangout">Hangout</string>
 
+    <string name="map_get_directions">Directions coming soon</string>
+    <string name="place_no_reviews">No reviews yet</string>
+    <plurals name="place_rating_summary">
+        <item quantity="one">★ %1$.1f · %2$d review</item>
+        <item quantity="other">★ %1$.1f · %2$d reviews</item>
+    </plurals>
+    <string name="place_your_rating">Your rating</string>
+    <string name="place_star_description">Rate %1$d out of 5 stars</string>
+    <string name="place_reviews_heading">Recent reviews</string>
+    <string name="place_no_written_reviews">No written reviews yet. Be the first!</string>
+    <string name="place_show_all_reviews">Show all %1$d reviews</string>
+    <string name="place_show_fewer_reviews">Show fewer reviews</string>
+    <string name="place_review_hint">Write a review…</string>
+    <string name="place_submit_review">Submit review</string>
+    <string name="place_review_need_rating">Choose a star rating first.</string>
+    <string name="place_review_need_text">Write a review before submitting.</string>
+    <string name="place_review_posted">Review posted</string>
+    <string name="place_review_meta">%1$s · %2$s · %3$s</string>
+    <string name="place_details_show">Details and reviews</string>
+    <string name="place_details_hide">Hide details</string>
+    <string name="place_write_review">Write a review</string>
+    <string name="place_review_dialog_title">Review %1$s</string>
+    <string name="place_review_dialog_rating">Your rating: %1$d out of 5 stars</string>
+
     <string name="place_type_building">Building</string>
     <string name="place_type_food">Food</string>
     <string name="place_type_restroom">Restroom</string>
     <string name="place_type_study">Study area</string>
-    <string name="place_type_hangout">Waiting / hangout area</string>
+    <string name="place_type_hangout">Hangout area</string>
+    <string name="place_hotspot_note">A hotspot is a popular place on campus.</string>
+    <string name="place_hotspot_label">Hotspot</string>
+    <!-- Marker text for a hotspot, e.g. "Hotspot: Plaza" -->
+    <string name="place_hotspot_marker_label">Hotspot: %1$s</string>
+    <!-- Place card category line for a hotspot, e.g. "Hotspot · Waiting / hangout area" -->
+    <string name="place_hotspot_category">Hotspot · %1$s</string>
 
     <!-- Community feed -->
     <string name="community_create_post">Create Post</string>
@@ -126,18 +157,12 @@
     <string name="groups_dialog_audience_confirm">Confirm</string>
     <string name="groups_dialog_cancel">Cancel</string>
     <string name="groups_title_location_sharing_on">Location sharing is on</string>
-    <string name="groups_subtitle_location_sharing_on">Sharing location with %1$s.</string>
-    <string name="groups_sharing_updated">Location sharing set to: %1$s</string>
     <string name="groups_dialog_create_title">Create New Group</string>
     <string name="groups_dialog_create_hint">Enter group name</string>
     <string name="groups_dialog_create_action">Create</string>
     <string name="groups_error_empty_group_name">Please enter a group name.</string>
     <string name="groups_created_success">Group \"%1$s\" created!</string>
     <string name="groups_dialog_join_title">Join Group with Code</string>
-    <string name="groups_dialog_join_hint">Enter 6-digit code (e.g. 123456)</string>
     <string name="groups_dialog_join_action">Join</string>
-    <string name="groups_error_invalid_code">Please enter a valid 6-digit code.</string>
-    <string name="groups_join_submitted">Code \"%1$s\" submitted. Verification pending.</string>
     <string name="groups_manage_unavailable">Group management is not available yet.</string>
-    <string name="groups_selected_feedback">Selected group: %1$s</string>
 </resources>

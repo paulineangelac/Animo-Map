@@ -15,16 +15,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
         android:elevation="4dp">
         <com.google.android.material.card.MaterialCardView
             android:id="@id/map_search_card"
             android:layout_width="match_parent"
-            android:layout_height="58dp"
+            android:layout_height="52dp"
             android:stateListAnimator="@null"
             app:cardBackgroundColor="@color/surface_card"
             app:cardCornerRadius="26dp"
-            app:cardElevation="4dp"
+            app:cardElevation="0dp"
             app:strokeWidth="0dp">
             <LinearLayout
                 android:layout_width="match_parent"
@@ -68,7 +71,7 @@
             android:id="@id/map_filter_scroll"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:scrollbars="none">
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/map_filter_group"
@@ -91,7 +94,7 @@
                     app:chipMinHeight="48dp"
                     app:checkedIconVisible="false"
                     app:chipBackgroundColor="@color/map_filter_chip_background"
-                    app:chipCornerRadius="18dp"
+                    app:chipCornerRadius="24dp"
                     app:chipStrokeColor="@color/map_filter_chip_stroke"
                     app:chipStrokeWidth="0dp" />
                 <com.google.android.material.chip.Chip
@@ -107,7 +110,7 @@
                     app:chipMinHeight="48dp"
                     app:checkedIconVisible="false"
                     app:chipBackgroundColor="@color/map_filter_chip_background"
-                    app:chipCornerRadius="18dp"
+                    app:chipCornerRadius="24dp"
                     app:chipStrokeColor="@color/map_filter_chip_stroke"
                     app:chipStrokeWidth="0dp" />
                 <com.google.android.material.chip.Chip
@@ -123,7 +126,7 @@
                     app:chipMinHeight="48dp"
                     app:checkedIconVisible="false"
                     app:chipBackgroundColor="@color/map_filter_chip_background"
-                    app:chipCornerRadius="18dp"
+                    app:chipCornerRadius="24dp"
                     app:chipStrokeColor="@color/map_filter_chip_stroke"
                     app:chipStrokeWidth="0dp" />
                 <com.google.android.material.chip.Chip
@@ -139,7 +142,7 @@
                     app:chipMinHeight="48dp"
                     app:checkedIconVisible="false"
                     app:chipBackgroundColor="@color/map_filter_chip_background"
-                    app:chipCornerRadius="18dp"
+                    app:chipCornerRadius="24dp"
                     app:chipStrokeColor="@color/map_filter_chip_stroke"
                     app:chipStrokeWidth="0dp" />
                 <com.google.android.material.chip.Chip
@@ -155,7 +158,7 @@
                     app:chipMinHeight="48dp"
                     app:checkedIconVisible="false"
                     app:chipBackgroundColor="@color/map_filter_chip_background"
-                    app:chipCornerRadius="18dp"
+                    app:chipCornerRadius="24dp"
                     app:chipStrokeColor="@color/map_filter_chip_stroke"
                     app:chipStrokeWidth="0dp" />
                 <com.google.android.material.chip.Chip
@@ -171,7 +174,7 @@
                     app:chipMinHeight="48dp"
                     app:checkedIconVisible="false"
                     app:chipBackgroundColor="@color/map_filter_chip_background"
-                    app:chipCornerRadius="18dp"
+                    app:chipCornerRadius="24dp"
                     app:chipStrokeColor="@color/map_filter_chip_stroke"
                     app:chipStrokeWidth="0dp" />
             </com.google.android.material.chip.ChipGroup>
@@ -307,12 +310,34 @@
                         android:textColor="@color/text_secondary"
                         android:textSize="14sp" />
                     <TextView
-                        android:id="@+id/tv_map_directions_notice"
+                        android:id="@+id/tv_map_place_rating"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <!-- Not wired up yet: shown disabled, and the label says why. -->
+                    <TextView
+                        android:id="@+id/tv_map_place_hotspot_note"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/place_hotspot_note"
                         android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:textSize="12sp"
+                        android:visibility="gone" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_map_get_directions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:enabled="false"
+                        android:minHeight="48dp"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/map_get_directions"
+                        android:textColor="@color/text_secondary"
+                        app:backgroundTint="@color/surface_elevated" />
+                    <!-- Secondary action: neutral graphite, so the teal stays for real actions. -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_map_directions"
                         android:layout_width="match_parent"
@@ -321,7 +346,87 @@
                         android:layout_marginTop="8dp"
                         android:text="@string/map_preview_demo"
                         android:textColor="@color/text_primary"
-                        app:backgroundTint="@color/primary_teal" />
+                        app:backgroundTint="@color/surface_elevated" />
+                    <!-- Everything below the toggle stays hidden until the student asks for it. -->
+                    <TextView
+                        android:id="@+id/tv_map_details_toggle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:minHeight="48dp"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <LinearLayout
+                        android:id="@+id/map_place_expanded"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+                        <TextView
+                            android:id="@+id/tv_map_place_description"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp" />
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="@string/place_your_rating"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                        <LinearLayout
+                            android:id="@+id/ll_map_rating_stars"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal" />
+                        <TextView
+                            android:id="@+id/tv_map_reviews_heading"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/place_reviews_heading"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                        <LinearLayout
+                            android:id="@+id/ll_map_reviews"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                        <TextView
+                            android:id="@+id/tv_map_reviews_empty"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/place_no_written_reviews"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="14sp" />
+                        <TextView
+                            android:id="@+id/tv_map_reviews_toggle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:gravity="center_vertical"
+                            android:minHeight="48dp"
+                            android:textColor="@color/accent_teal"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                        <!-- Secondary action: neutral graphite, so Directions stays the one teal button. -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_map_write_review"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="48dp"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/place_write_review"
+                            android:textColor="@color/text_primary"
+                            app:backgroundTint="@color/surface_elevated" />
+                    </LinearLayout>
                 </LinearLayout>
             </ScrollView>
         </LinearLayout>
@@ -337,89 +442,80 @@
         android:focusable="true"
         android:orientation="vertical"
         android:paddingStart="20dp"
-        android:paddingTop="12dp"
+        android:paddingTop="8dp"
         android:paddingEnd="20dp"
         android:visibility="gone">
 
+        <!-- The field leads the panel; the close button sits beside it in the same row. -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="56dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="@string/map_search_icon_description"
-                android:src="@drawable/ic_map_search"
-                app:tint="@color/accent_teal" />
-
-            <TextView
-                android:id="@+id/tv_map_search_title"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:text="@string/map_search_landing_label"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                app:cardBackgroundColor="@color/surface_elevated"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_map_search"
+                        app:tint="@color/accent_teal" />
+
+                    <EditText
+                        android:id="@+id/et_map_search"
+                        android:importantForAutofill="no"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="12dp"
+                        android:layout_marginEnd="12dp"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:hint="@string/map_search_hint"
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:padding="0dp"
+                        android:singleLine="true"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_secondary"
+                        android:textSize="15sp" />
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:contentDescription="@string/map_voice_search_description"
+                        android:importantForAccessibility="yes"
+                        android:src="@drawable/ic_map_microphone"
+                        app:tint="@color/text_secondary" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <ImageButton
                 android:id="@+id/btn_close_map_search"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/map_close_search"
-                android:padding="10dp"
+                android:padding="12dp"
                 android:src="@drawable/ic_map_close"
                 app:tint="@color/text_secondary" />
         </LinearLayout>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="12dp"
-            app:cardBackgroundColor="@color/surface_elevated"
-            app:cardCornerRadius="28dp"
-            app:cardElevation="0dp"
-            app:strokeWidth="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingStart="20dp"
-                android:paddingEnd="16dp">
-
-                <EditText
-                    android:id="@+id/et_map_search"
-                    android:importantForAutofill="no"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="@android:color/transparent"
-                    android:hint="@string/map_search_hint"
-                    android:imeOptions="actionSearch"
-                    android:inputType="text"
-                    android:padding="0dp"
-                    android:singleLine="true"
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_secondary"
-                    android:textSize="15sp" />
-
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:contentDescription="@string/map_voice_search_description"
-                    android:importantForAccessibility="yes"
-                    android:src="@drawable/ic_map_microphone"
-                    app:tint="@color/text_secondary" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
 
         <HorizontalScrollView
             android:layout_width="match_parent"
@@ -470,6 +566,22 @@
                 android:textSize="14sp"
                 android:visibility="gone" />
         </FrameLayout>
+
+        <!-- Manual location was only reachable by long-pressing the location button.
+             It sits below the results so it never interrupts the list. -->
+        <TextView
+            android:id="@+id/btn_map_search_set_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:drawablePadding="12dp"
+            app:drawableStartCompat="@drawable/ic_map_my_location"
+            app:drawableTint="@color/accent_teal"
+            android:gravity="center_vertical"
+            android:minHeight="48dp"
+            android:text="@string/map_set_my_location"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp" />
     </LinearLayout>
 
 </FrameLayout>

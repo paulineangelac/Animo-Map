@@ -1,119 +1,152 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Scrolls in case the student is in many groups, so the buttons stay reachable. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_group_card"
-    android:orientation="vertical"
-    android:padding="20dp">
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/groups_dialog_audience_title"
-        android:textColor="@color/text_primary"
-        android:textSize="18sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="12dp"
-        android:text="Select which groups can view your campus location."
-        android:textColor="@color/text_secondary"
-        android:textSize="12sp" />
-
-    <RadioGroup
-        android:id="@+id/dialog_audience_radio_group"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <RadioButton
-            android:id="@+id/radio_off"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:buttonTint="@color/accent_teal"
-            android:paddingVertical="8dp"
-            android:text="Off (Private)"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp" />
-
-        <RadioButton
-            android:id="@+id/radio_all"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:buttonTint="@color/accent_teal"
-            android:paddingVertical="8dp"
-            android:text="All My Groups"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp" />
-
-        <RadioButton
-            android:id="@+id/radio_ccs"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:buttonTint="@color/accent_teal"
-            android:paddingVertical="8dp"
-            android:text="CCS Friends only"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp" />
-
-        <RadioButton
-            android:id="@+id/radio_between"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:buttonTint="@color/accent_teal"
-            android:paddingVertical="8dp"
-            android:text="Between Classes only"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp" />
-
-        <RadioButton
-            android:id="@+id/radio_study"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:buttonTint="@color/accent_teal"
-            android:paddingVertical="8dp"
-            android:text="Study Squad only"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp" />
-
-    </RadioGroup>
+    android:background="@drawable/bg_group_card">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:gravity="end"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:padding="20dp">
 
         <TextView
-            android:id="@+id/dialog_audience_cancel"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_button_secondary"
-            android:gravity="center"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="10dp"
-            android:text="@string/groups_dialog_cancel"
+            android:text="@string/groups_dialog_audience_title"
             android:textColor="@color/text_primary"
-            android:textSize="14sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/dialog_audience_confirm"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:background="@drawable/bg_button_primary"
-            android:gravity="center"
-            android:paddingHorizontal="20dp"
-            android:paddingVertical="10dp"
-            android:text="@string/groups_dialog_audience_confirm"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="12dp"
+            android:text="@string/groups_dialog_audience_subtitle"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
 
+        <!-- "Off" and "All my groups" are here. One option per group is added in GroupsFragment. -->
+        <RadioGroup
+            android:id="@+id/dialog_audience_radio_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/radio_off"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/accent_teal"
+                android:paddingVertical="8dp"
+                android:text="@string/groups_audience_off"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/radio_all"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/accent_teal"
+                android:paddingVertical="8dp"
+                android:text="@string/groups_audience_all"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
+
+        </RadioGroup>
+
+        <!-- Building picker: hidden while sharing is Off -->
+        <LinearLayout
+            android:id="@+id/dialog_audience_building_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:labelFor="@id/dialog_audience_building"
+                android:text="@string/groups_label_building"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Spinner
+                    android:id="@+id/dialog_audience_building"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_dialog_input"
+                    android:minHeight="48dp"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="36dp"
+                    android:popupBackground="@color/surface_card"
+                    android:spinnerMode="dropdown" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="14dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_community_expand"
+                    app:tint="@color/text_secondary" />
+
+            </FrameLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/dialog_audience_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:accessibilityLiveRegion="polite"
+            android:text="@string/groups_error_choose_building"
+            android:textColor="@color/groups_error"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/dialog_audience_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_button_secondary"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp"
+                android:text="@string/groups_dialog_cancel"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/dialog_audience_confirm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/bg_button_primary"
+                android:gravity="center"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="10dp"
+                android:text="@string/groups_dialog_audience_confirm"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
     </LinearLayout>
-
-</LinearLayout>
+</ScrollView>
