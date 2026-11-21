@@ -122,7 +122,9 @@ public class MapFragment extends Fragment {
     private ChipGroup filters, searchFilters;
     private MapPlace selected;
     private MapPlace.Category category;
-    private boolean demo, updatingUi, focusRequested;
+    private boolean demo, routingMode, updatingUi, focusRequested;
+    private int selectedRouteIndex = 0;
+    private List<RouteOption> currentRouteOptions = new ArrayList<>();
     private int lastMaxCardHeight;
     private boolean gpsRequested, gpsUpdatesRunning, centerOnNextFix;
     private Bitmap userPinIcon;
