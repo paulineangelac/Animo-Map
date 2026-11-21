@@ -14,7 +14,9 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 public class CommunityFeedDataSourceTest {
@@ -55,6 +57,53 @@ public class CommunityFeedDataSourceTest {
         assertEquals(0, post.getCommentCount());
         assertEquals(CampusMapData.LASALLE, post.getLocation().placeId);
         assertEquals(initialPlaceCount, CampusMapData.getPlaces().size());
+    }
+
+    @Test
+    public void sampleAndSessionSnapshotsKeepTheSameUniqueSeedPosts() {
+        List<CommunityPost> samples = CommunityFeedDataSource.getSamplePosts();
+        List<CommunityPost> session = CommunityFeedDataSource.getSessionPosts();
+        assertFalse(samples.isEmpty());
+        Set<String> postIds = new HashSet<>();
+        Set<String> authorIds = new HashSet<>();
+        for (int i = 0; i < samples.size(); i++) {
+            CommunityPost sample = samples.get(i);
+            assertTrue(postIds.add(sample.getId()));
+            assertTrue(authorIds.add(sample.getAuthorId()));
+            assertSame(sample, session.get(i));
+            assertSame(sample, CommunityFeedDataSource.findPost(sample.getId()));
+        }
+
+        List<CommunityPost> secondRead = CommunityFeedDataSource.getSamplePosts();
+        assertEquals(samples, secondRead);
+        secondRead.clear();
+        session.clear();
+        assertEquals(samples, CommunityFeedDataSource.getSamplePosts());
+        assertEquals(samples.get(0), CommunityFeedDataSource.getSessionPosts().get(0));
+    }
+
+    @Test
+    public void newPostsHaveDifferentIdsAndShareTheComposerAuthor() {
+        List<CommunityPost> samples = CommunityFeedDataSource.getSamplePosts();
+        byte[] photo = {1, 2, 3};
+        CommunityPost first = CommunityFeedDataSource.submitPost("@alexsantos", "AS",
+                CommunityPostType.CAMPUS_TIPS, "", "Bring an umbrella.", null,
+                Collections.singletonList(photo));
+        CommunityPost second = CommunityFeedDataSource.submitPost("@alexsantos", "AS",
+                CommunityPostType.GENERAL_DISCUSSION, "", "How was your day?", null,
+                Collections.emptyList());
+
+        assertNotEquals(first.getId(), second.getId());
+        assertNotNull(first.getAuthorId());
+        assertEquals(first.getAuthorId(), second.getAuthorId());
+        assertSame(first, CommunityFeedDataSource.findPost(first.getId()));
+        assertTrue(CommunityFeedDataSource.getSessionPosts().contains(second));
+        assertSame(photo, first.getPhotos().get(0));
+        assertEquals(CommunityPost.MapReviewStatus.NOT_APPLICABLE, second.getMapReviewStatus());
+        for (CommunityPost sample : samples) {
+            assertNotEquals(sample.getAuthorId(), first.getAuthorId());
+        }
+        assertEquals(samples, CommunityFeedDataSource.getSamplePosts());
     }
 
     @Test

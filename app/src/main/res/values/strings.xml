@@ -116,6 +116,7 @@
     <string name="community_photo_preview_description">Selected post photo</string>
     <string name="community_info_symbol">i</string>
     <string name="community_filter_option_selected">%1$s  ✓</string>
+    <string name="community_filter_option_accessibility_selected">%1$s, selected</string>
     <string name="community_avatar_description">Profile picture</string>
     <string name="community_category_recommended">Recommended</string>
     <string name="community_category_recent">Recent</string>

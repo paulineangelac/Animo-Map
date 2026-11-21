@@ -2,11 +2,12 @@ package com.itismob.s02.group5.animomap.ui.community;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.Bundle;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.view.Gravity;
+import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -17,6 +18,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,7 +27,6 @@ import com.google.android.material.snackbar.Snackbar;
 import com.itismob.s02.group5.animomap.R;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,7 +35,6 @@ public class CommunityFragment extends Fragment {
     private static final String STATE_FILTER = "filter";
     private static final String STATE_UPVOTES = "upvotes";
 
-    private List<CommunityPost> allPosts;
     private final Set<String> activeUpvotes = new HashSet<>();
     private CommunityFeedDataSource.Category selectedCategory =
             CommunityFeedDataSource.Category.RECENT;
@@ -42,6 +42,7 @@ public class CommunityFragment extends Fragment {
     private RecyclerView recyclerView;
     private TextView emptyState;
     private TextView filterControl;
+    private Menu filterOptions;
     private View reviewNotice;
 
     private final ActivityResultLauncher<Intent> composer =
@@ -78,7 +79,11 @@ public class CommunityFragment extends Fragment {
         filterControl = view.findViewById(R.id.community_filter);
         reviewNotice = view.findViewById(R.id.community_review_notice);
 
-        allPosts = CommunityFeedDataSource.getSessionPosts();
+        // Inflate the definitions here and keep the existing styled popup for display.
+        PopupMenu menu = new PopupMenu(requireContext(), filterControl);
+        menu.inflate(R.menu.community_feed_filters);
+        filterOptions = menu.getMenu();
+
         adapter = new CommunityFeedAdapter(new CommunityFeedAdapter.Listener() {
             @Override
             public void onPostSelected(CommunityPost post) {
@@ -92,11 +97,14 @@ public class CommunityFragment extends Fragment {
 
             @Override
             public void onUpvoteToggled(CommunityPost post, boolean isUpvoted) {
-                boolean wasUpvoted = activeUpvotes.contains(post.getId());
-                if (wasUpvoted != isUpvoted) {
-                    CommunityFeedDataSource.toggleUpvote(activeUpvotes, post.getId());
+                String postId = post.getId();
+                if (activeUpvotes.contains(postId) == isUpvoted) return;
+                CommunityFeedDataSource.toggleUpvote(activeUpvotes, postId);
+                if (selectedCategory == CommunityFeedDataSource.Category.RECOMMENDED) {
+                    showSelectedCategory();
+                } else {
+                    adapter.refreshUpvote(postId);
                 }
-                showSelectedCategory();
             }
 
             @Override
@@ -129,7 +137,6 @@ public class CommunityFragment extends Fragment {
     private void onPostPublished(String postId) {
         CommunityPost post = CommunityFeedDataSource.findPost(postId);
         if (post == null || getView() == null) return;
-        allPosts = CommunityFeedDataSource.getSessionPosts();
         if (selectedCategory == CommunityFeedDataSource.Category.POI_CANDIDATES
                 && !post.isPoiCandidate()) {
             selectedCategory = CommunityFeedDataSource.Category.RECENT;
@@ -144,37 +151,21 @@ public class CommunityFragment extends Fragment {
         showMessage(R.string.community_post_published);
     }
 
-    private void selectCategory(CommunityFeedDataSource.Category category) {
-        selectedCategory = category;
-        showSelectedCategory();
-    }
-
     private List<CommunityPost> showSelectedCategory() {
-        if (adapter == null || allPosts == null) {
-            return Collections.emptyList();
-        }
-
-        filterControl.setText(filterLabel(selectedCategory));
+        MenuItem selectedOption = filterOptions.findItem(selectedCategory.menuItemId);
+        selectedOption.setChecked(true);
+        filterControl.setText(selectedOption.getTitle());
         reviewNotice.setVisibility(selectedCategory == CommunityFeedDataSource.Category.POI_CANDIDATES
                 ? View.VISIBLE : View.GONE);
 
         List<CommunityPost> visiblePosts = CommunityFeedDataSource.getPostsForCategory(
-                allPosts, selectedCategory, activeUpvotes);
+                CommunityFeedDataSource.getSessionPosts(), selectedCategory, activeUpvotes);
         adapter.updatePosts(visiblePosts, activeUpvotes);
 
         boolean isEmpty = visiblePosts.isEmpty();
         emptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         recyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
         return visiblePosts;
-    }
-
-    private int filterLabel(CommunityFeedDataSource.Category category) {
-        switch (category) {
-            case RECOMMENDED: return R.string.community_filter_relevant;
-            case ALL_POSTS: return R.string.community_filter_all;
-            case POI_CANDIDATES: return R.string.community_filter_candidates;
-            default: return R.string.community_filter_recent;
-        }
     }
 
     private void showFilterMenu() {
@@ -186,28 +177,34 @@ public class CommunityFragment extends Fragment {
         popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         popup.setOutsideTouchable(true);
         popup.setElevation(dp(8));
-        CommunityFeedDataSource.Category[] options = {
-                CommunityFeedDataSource.Category.RECENT,
-                CommunityFeedDataSource.Category.RECOMMENDED,
-                CommunityFeedDataSource.Category.ALL_POSTS,
-                CommunityFeedDataSource.Category.POI_CANDIDATES
-        };
-        for (CommunityFeedDataSource.Category option : options) {
-            TextView row = new TextView(requireContext());
-            boolean selected = option == selectedCategory;
+        for (int i = 0; i < filterOptions.size(); i++) {
+            MenuItem option = filterOptions.getItem(i);
+            TextView row = (TextView) getLayoutInflater().inflate(
+                    R.layout.item_community_filter_option, menu, false);
+            boolean selected = option.isChecked();
+            CharSequence title = option.getTitle();
             row.setText(selected
-                    ? getString(R.string.community_filter_option_selected, getString(filterLabel(option)))
-                    : getString(filterLabel(option)));
+                    ? getString(R.string.community_filter_option_selected, title) : title);
             row.setTextColor(requireContext().getColor(selected ? R.color.accent_teal : R.color.text_primary));
-            row.setTextSize(14);
-            row.setGravity(Gravity.CENTER_VERTICAL);
-            row.setPadding(dp(12), 0, dp(12), 0);
-            row.setBackgroundResource(android.R.drawable.list_selector_background);
-            row.setContentDescription(getString(filterLabel(option)) + (selected ? ", selected" : ""));
-            row.setOnClickListener(v -> { selectCategory(option); popup.dismiss(); });
-            menu.addView(row, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)));
+            row.setContentDescription(selected
+                    ? getString(R.string.community_filter_option_accessibility_selected, title) : title);
+            row.setOnClickListener(v -> {
+                selectFilter(option.getItemId());
+                popup.dismiss();
+            });
+            menu.addView(row);
         }
         popup.showAsDropDown(filterControl, 0, dp(4));
+    }
+
+    private void selectFilter(int itemId) {
+        for (CommunityFeedDataSource.Category category : CommunityFeedDataSource.Category.values()) {
+            if (category.menuItemId == itemId) {
+                selectedCategory = category;
+                showSelectedCategory();
+                return;
+            }
+        }
     }
 
     private int dp(int value) {

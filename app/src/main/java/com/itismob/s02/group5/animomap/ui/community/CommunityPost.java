@@ -7,7 +7,10 @@ import java.util.List;
 public class CommunityPost {
     enum MapReviewStatus { NOT_APPLICABLE, PENDING }
 
+    private static final String PROTOTYPE_AUTHOR_ID = "prototype_alex_santos";
+
     private final String id;
+    private final String authorId;
     private final String authorName;
     private final String authorInitials;
     private final int avatarResourceId;
@@ -40,7 +43,8 @@ public class CommunityPost {
                          String title, String description, int imageResourceId,
                          int upvoteCount, int commentCount, long createdAtMillis,
                          boolean poiCandidate, int avatarResourceId) {
-        this(id, authorName, authorInitials, studentAffiliation, locationId, locationName,
+        this(id, "sample:" + authorName, authorName, authorInitials,
+                studentAffiliation, locationId, locationName,
                 title, description, imageResourceId, upvoteCount, commentCount, createdAtMillis,
                 avatarResourceId, poiCandidate ? CommunityPostType.POI_RECOMMENDATION : null,
                 null, Collections.emptyList());
@@ -49,22 +53,22 @@ public class CommunityPost {
     CommunityPost(String id, String authorName, String authorInitials, CommunityPostType type,
                   String title, String description, PostLocation location, List<byte[]> photos,
                   long createdAtMillis) {
-        this(id, authorName, authorInitials, null, location == null ? null : location.placeId,
-                location == null ? null : location.name, title, description, 0, 0, 0, createdAtMillis,
-                0, type, location, photos);
+        this(id, PROTOTYPE_AUTHOR_ID, authorName, authorInitials, null, null, null,
+                title, description, 0, 0, 0, createdAtMillis, 0, type, location, photos);
     }
 
-    private CommunityPost(String id, String authorName, String authorInitials,
-                          String studentAffiliation, String locationId, String locationName,
-                          String title, String description, int imageResourceId, int upvoteCount,
-                          int commentCount, long createdAtMillis, int avatarResourceId,
-                          CommunityPostType type, PostLocation location, List<byte[]> photos) {
+    CommunityPost(String id, String authorId, String authorName, String authorInitials,
+                  String studentAffiliation, String locationId, String locationName,
+                  String title, String description, int imageResourceId, int upvoteCount,
+                  int commentCount, long createdAtMillis, int avatarResourceId,
+                  CommunityPostType type, PostLocation location, List<byte[]> photos) {
         this.id = id;
+        this.authorId = authorId;
         this.authorName = authorName;
         this.authorInitials = authorInitials;
         this.studentAffiliation = studentAffiliation;
-        this.locationId = locationId;
-        this.locationName = locationName;
+        this.locationId = location == null ? locationId : location.placeId;
+        this.locationName = location == null ? locationName : location.name;
         this.title = title;
         this.description = description;
         this.imageResourceId = imageResourceId;
@@ -85,6 +89,10 @@ public class CommunityPost {
 
     public String getId() {
         return id;
+    }
+
+    public String getAuthorId() {
+        return authorId;
     }
 
     public String getAuthorName() {

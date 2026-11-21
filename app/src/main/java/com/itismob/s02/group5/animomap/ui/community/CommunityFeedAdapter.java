@@ -13,11 +13,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.card.MaterialCardView;
 import com.itismob.s02.group5.animomap.R;
 import com.itismob.s02.group5.animomap.ui.profile.OtherProfileActivity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,24 +37,25 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
     private final Listener listener;
     private final List<CommunityPost> posts = new ArrayList<>();
     private final Set<String> savedPosts = new HashSet<>();
-    private Set<String> activeUpvotes;
+    private Set<String> activeUpvotes = Collections.emptySet();
 
     public CommunityFeedAdapter(Listener listener) {
         this.listener = listener;
     }
 
     public void updatePosts(List<CommunityPost> newPosts, Set<String> upvotes) {
-        int oldCount = posts.size();
         posts.clear();
         posts.addAll(newPosts);
         activeUpvotes = upvotes;
-        int newCount = posts.size();
-        int sharedCount = Math.min(oldCount, newCount);
-        if (sharedCount > 0) notifyItemRangeChanged(0, sharedCount);
-        if (newCount > oldCount) {
-            notifyItemRangeInserted(oldCount, newCount - oldCount);
-        } else if (oldCount > newCount) {
-            notifyItemRangeRemoved(newCount, oldCount - newCount);
+        notifyDataSetChanged();
+    }
+
+    void refreshUpvote(String postId) {
+        for (int i = 0; i < posts.size(); i++) {
+            if (postId.equals(posts.get(i).getId())) {
+                notifyItemChanged(i);
+                return;
+            }
         }
     }
 
@@ -82,28 +83,18 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
         holder.locationLabel.setVisibility(hasLocation ? View.VISIBLE : View.GONE);
         holder.locationLabel.setText(post.getLocation() == null ? post.getLocationName()
                 : post.getLocation().label(context));
-        holder.locationLabel.setCompoundDrawablesWithIntrinsicBounds(
-                R.drawable.ic_community_location, 0, 0, 0);
         holder.postTitle.setText(post.getTitle());
         holder.postTitle.setVisibility(post.getTitle() == null ? View.GONE : View.VISIBLE);
         holder.postDescription.setText(post.getDescription());
 
-        if (post.getMapReviewStatus() == CommunityPost.MapReviewStatus.PENDING) {
-            holder.candidateLabel.setVisibility(View.VISIBLE);
-            holder.postCard.setStrokeColor(context.getColor(R.color.community_card_border));
-            holder.postCard.setStrokeWidth(context.getResources().getDimensionPixelSize(
-                    R.dimen.community_candidate_stroke_width));
-        } else {
-            holder.candidateLabel.setVisibility(View.GONE);
-            holder.postCard.setStrokeColor(context.getColor(R.color.community_card_border));
-            holder.postCard.setStrokeWidth(context.getResources().getDimensionPixelSize(
-                    R.dimen.community_card_stroke_width));
-        }
+        holder.candidateLabel.setVisibility(
+                post.getMapReviewStatus() == CommunityPost.MapReviewStatus.PENDING
+                        ? View.VISIBLE : View.GONE);
 
         holder.bindPhotos(post, index -> listener.onPhotoSelected(post, index));
 
-        boolean isUpvoted = activeUpvotes != null && activeUpvotes.contains(post.getId());
-        int voteCount = post.getUpvoteCount() + (isUpvoted ? 1 : 0);
+        boolean isUpvoted = activeUpvotes.contains(post.getId());
+        int voteCount = CommunityFeedDataSource.getDisplayedVoteCount(post, activeUpvotes);
         holder.upvoteButton.setText(context.getString(R.string.community_vote_count, voteCount));
         holder.upvoteButton.setSelected(isUpvoted);
         TextViewCompat.setCompoundDrawableTintList(holder.upvoteButton,
@@ -123,7 +114,7 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
         holder.itemView.setOnClickListener(view -> listener.onPostSelected(post));
         holder.commentsButton.setOnClickListener(view -> listener.onCommentsSelected(post));
         holder.upvoteButton.setOnClickListener(view ->
-                listener.onUpvoteToggled(post, !isUpvoted));
+                listener.onUpvoteToggled(post, !activeUpvotes.contains(post.getId())));
         holder.saveButton.setOnClickListener(view -> {
             if (!savedPosts.add(post.getId())) {
                 savedPosts.remove(post.getId());
@@ -170,7 +161,6 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
     }
 
     public static final class PostViewHolder extends RecyclerView.ViewHolder {
-        final MaterialCardView postCard;
         final TextView candidateLabel;
         final TextView authorAvatar;
         final ImageView authorPhoto;
@@ -190,7 +180,6 @@ public class CommunityFeedAdapter extends RecyclerView.Adapter<CommunityFeedAdap
 
         PostViewHolder(@NonNull View itemView) {
             super(itemView);
-            postCard = itemView.findViewById(R.id.community_post_card);
             candidateLabel = itemView.findViewById(R.id.community_candidate_label);
             authorAvatar = itemView.findViewById(R.id.community_author_avatar);
             authorPhoto = itemView.findViewById(R.id.community_author_photo);
