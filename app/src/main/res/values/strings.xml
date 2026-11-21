@@ -70,7 +70,13 @@
     <string name="map_filter_restrooms">Restrooms</string>
     <string name="map_filter_hangout">Hangout</string>
 
-    <string name="map_get_directions">Directions coming soon</string>
+    <string name="map_get_directions">Get directions</string>
+    <string name="map_back_to_place_details">Back to place</string>
+    <string name="map_route_options_heading">Available Route Options</string>
+    <string name="map_route_stairs">%1$d stairs</string>
+    <string name="map_route_no_stairs">No stairs (ramp / flat)</string>
+    <string name="map_directions_title">%1$s → %2$s</string>
+    <string name="map_directions_subtitle">From %1$s</string>
     <string name="place_no_reviews">No reviews yet</string>
     <plurals name="place_rating_summary">
         <item quantity="one">★ %1$.1f · %2$d review</item>
